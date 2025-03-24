@@ -42,7 +42,7 @@
             position: absolute;
             bottom: 30px;
             left: 50%;
-            background-image: url('player.png');
+            background-color: transparent; /* We'll draw the player with code */
             background-size: cover;
             z-index: 10;
             transform: translateX(-50%);
@@ -160,12 +160,21 @@
             position: absolute;
             background-size: 100% 100%;
         }
+        
+        .room-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="scene">
-            <div id="current-room" class="room"></div>
+            <canvas id="room-canvas" class="room-canvas" width="640" height="400"></canvas>
             <div class="player" id="player"></div>
             <!-- Hotspots will be added here dynamically -->
         </div>
@@ -491,6 +500,12 @@
 
         // Game initialization
         function initGame() {
+            // Initialize network monitoring to catch PNG load attempts
+            monitorNetworkForPngRequests();
+            
+            // Generate player sprite directly in the player div
+            generatePlayerSprite();
+            
             updateRoom();
             setInterval(updateGameTime, 1000);
             
@@ -520,12 +535,59 @@
             showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
         }
 
+        // Add function to generate player sprite
+        function generatePlayerSprite() {
+            const playerDiv = document.getElementById('player');
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 64;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Get the player sprite from our sprite collection
+            if (window.gameSprites && window.gameSprites.playerCharacter) {
+                window.gameSprites.playerCharacter.render(ctx, 0, 0, 8); // Scale up by 8
+            } else {
+                // Fallback player sprite if our generated one isn't available
+                ctx.fillStyle = '#3050FF'; // Blue
+                ctx.fillRect(8, 16, 16, 32); // Body
+                ctx.fillStyle = '#FFC8A2'; // Skin tone
+                ctx.fillRect(8, 0, 16, 16); // Head
+            }
+            
+            playerDiv.appendChild(canvas);
+        }
+
+        // Modified updateRoom function to use canvas instead of background-image
         function updateRoom() {
             const room = rooms[gameState.currentRoom];
-            const roomElement = document.getElementById('current-room');
+            const canvas = document.getElementById('room-canvas');
+            const ctx = canvas.getContext('2d');
             
-            // Set room background
-            roomElement.style.backgroundImage = `url('${room.background}')`;
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the background - use our generated backgrounds from gameSprites
+            const backgroundKey = room.background.replace('.png', '');
+            if (window.gameImages && window.gameImages[backgroundKey]) {
+                // Create a temporary image to draw our data URL
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    // Draw room-specific elements once background is loaded
+                    drawRoomElements(ctx, room);
+                };
+                img.src = window.gameImages[backgroundKey];
+            } else {
+                // Fallback if background not found
+                console.warn(`Background not found: ${room.background} - Using fallback`);
+                ctx.fillStyle = '#222222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Draw room-specific elements
+                drawRoomElements(ctx, room);
+            }
             
             // Clear existing hotspots
             const existingHotspots = document.querySelectorAll('.hotspot');
@@ -546,6 +608,60 @@
             
             // Show room description
             showMessage(room.description);
+        }
+        
+        // Helper function to draw room-specific elements on the canvas
+        function drawRoomElements(ctx, room) {
+            // Draw any room-specific elements here
+            // This could be drawn from sprites defined in gameSprites
+            
+            // For demonstration, we'll draw hotspot indicators in debug mode
+            if (window.debugMode) {
+                room.hotspots.forEach(hotspot => {
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(hotspot.x, hotspot.y, hotspot.width, hotspot.height);
+                    
+                    // Draw name of the hotspot
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                    ctx.font = '10px monospace';
+                    ctx.fillText(hotspot.name, hotspot.x, hotspot.y - 2);
+                });
+            }
+        }
+        
+        // Monitor network requests to catch any PNG loading attempts
+        function monitorNetworkForPngRequests() {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.endsWith('.png')) {
+                    console.error(`PNG fetch attempt blocked: ${url}`);
+                    // Return a promise that resolves to an empty response
+                    return Promise.resolve(new Response('', {
+                        status: 200,
+                        statusText: 'OK'
+                    }));
+                }
+                return originalFetch.apply(this, arguments);
+            };
+            
+            // Also monkey patch XMLHttpRequest
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url) {
+                if (typeof url === 'string' && url.endsWith('.png')) {
+                    console.error(`PNG XHR attempt blocked: ${url}`);
+                    // Replace the URL with a data URL
+                    if (window.gameImages && window.gameImages[url]) {
+                        arguments[1] = window.gameImages[url];
+                    } else {
+                        // Use a blank data URL
+                        arguments[1] = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                    }
+                }
+                return originalOpen.apply(this, arguments);
+            };
+            
+            console.log('Network monitoring active - will detect any PNG load attempts');
         }
 
         function setPlayerAction(action) {

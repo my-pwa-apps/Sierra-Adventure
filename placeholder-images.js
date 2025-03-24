@@ -229,6 +229,12 @@ function generateGameGraphics() {
   // Create player character
   const playerSprite = createCharacterSprite(COLORS.SHIRT_BLUE, COLORS.PANTS_NAVY);
 
+  // Create NPC character sprites
+  const characters = createCharacterSprites();
+  
+  // Create object sprites
+  const objects = createObjectSprites();
+  
   // Store all game sprites in a global map (no PNG references!)
   window.gameSprites = {
     // Scenes
@@ -238,15 +244,25 @@ function generateGameGraphics() {
     'hotelHallwayScene': hotelHallwayBackground,
     'secretRoomScene': secretRoomBackground,
     
-    // Characters
+    // Main character
     'playerCharacter': playerSprite,
+    
+    // NPCs
+    'bartender': characters.bartender,
+    'mysterious-woman': characters.mysteriousWoman,
+    'mysterious-person': characters.mysteriousPerson,
+    'receptionist': characters.receptionist,
+    'dealer': characters.dealer,
     
     // Objects
     'table': createFurnitureSprite('table'),
     'chair': createFurnitureSprite('chair'),
     'bed': createFurnitureSprite('bed'),
     'window': createFurnitureSprite('window'),
-    'door': createFurnitureSprite('door')
+    'door': createFurnitureSprite('door'),
+    'hotel-key': objects['hotel-key'],
+    'newspaper': objects['newspaper'],
+    'mysterious-package': objects['mysterious-package']
   };
   
   // Convert sprites to data URLs for compatibility with existing code
@@ -263,6 +279,9 @@ function generateGameGraphics() {
   window.gameImages['hotel-hallway-background.png'] = window.gameImages.hotelHallwayScene;
   window.gameImages['secret-room-background.png'] = window.gameImages.secretRoomScene;
   window.gameImages['player.png'] = window.gameImages.playerCharacter;
+  
+  // Also handle CSS background-image links to PNG files
+  interceptCssBackgroundImages();
   
   console.log("All game graphics generated from code - no PNG files loaded");
 }
@@ -353,3 +372,173 @@ window.pixelArt = {
   createScene: createSceneBackground,
   colors: COLORS
 };
+
+// Create sprites for all game NPCs
+function createCharacterSprites() {
+  // Bartender sprite
+  const bartender = new PixelSprite([
+    [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+    [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN],
+    [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN], // With mustache
+    [COLORS.TRANSPARENT, COLORS.METAL, COLORS.METAL, COLORS.TRANSPARENT], // Apron
+    [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
+    [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
+    [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+  ]);
+  
+  // Mysterious woman sprite
+  const mysteriousWoman = new PixelSprite([
+    [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT], // Blonde hair
+    [COLORS.YELLOW, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.YELLOW], 
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT], // Red dress
+    [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+    [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.TRANSPARENT, COLORS.SKIN_TONE], // Legs
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.TRANSPARENT, COLORS.SKIN_TONE],
+  ]);
+  
+  // Mysterious person sprite
+  const mysteriousPerson = new PixelSprite([
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT], // Dark hat
+    [COLORS.BLACK, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.BLACK],
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.TRANSPARENT], // Grey coat
+    [COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.DARK_GREY],
+    [COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.DARK_GREY],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+  ]);
+  
+  // Receptionist sprite
+  const receptionist = new PixelSprite([
+    [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT], 
+    [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN],
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.WHITE, COLORS.WHITE, COLORS.TRANSPARENT], // White shirt
+    [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+    [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+  ]);
+  
+  // Dealer sprite
+  const dealer = new PixelSprite([
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+    [COLORS.BLACK, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.BLACK],
+    [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT], // Black suit
+    [COLORS.BLACK, COLORS.BLACK, COLORS.BLACK, COLORS.BLACK],
+    [COLORS.BLACK, COLORS.WHITE, COLORS.WHITE, COLORS.BLACK], // White shirt under
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+    [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+  ]);
+  
+  return {
+    bartender,
+    mysteriousWoman,
+    mysteriousPerson,
+    receptionist,
+    dealer
+  };
+}
+
+// Enhanced function to generate object sprites for all items in game
+function createObjectSprites() {
+  return {
+    'hotel-key': new PixelSprite([
+      [COLORS.TRANSPARENT, COLORS.METAL, COLORS.METAL],
+      [COLORS.METAL, COLORS.METAL, COLORS.TRANSPARENT],
+    ]),
+    'newspaper': new PixelSprite([
+      [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+      [COLORS.WHITE, COLORS.BLACK, COLORS.BLACK, COLORS.WHITE],
+      [COLORS.WHITE, COLORS.BLACK, COLORS.BLACK, COLORS.WHITE],
+      [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+    ]),
+    'mysterious-package': new PixelSprite([
+      [COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN],
+      [COLORS.LIGHT_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.LIGHT_BROWN],
+      [COLORS.LIGHT_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.LIGHT_BROWN],
+      [COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN],
+    ])
+  };
+}
+
+// New function to intercept CSS background-image properties
+function interceptCssBackgroundImages() {
+  // Store the original setProperty function
+  const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+  
+  // Override the setProperty function to intercept background-image settings
+  CSSStyleDeclaration.prototype.setProperty = function(propertyName, value, priority) {
+    if (propertyName === 'background-image' && typeof value === 'string') {
+      // Check if it's a PNG url
+      const pngMatch = value.match(/url\(['"]?([^'"]+\.png)['"]?\)/i);
+      if (pngMatch) {
+        const pngFile = pngMatch[1];
+        console.warn(`Intercepted CSS background-image PNG request: ${pngFile}`);
+        
+        // Check if we have a generated image for this PNG
+        if (window.gameImages && window.gameImages[pngFile]) {
+          // Replace with the data URL
+          value = `url(${window.gameImages[pngFile]})`;
+        } else {
+          // Use a placeholder data URL
+          const placeholderSprite = new PixelSprite(Array(4).fill().map(() => 
+            Array(4).fill().map(() => 
+              `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`
+            )
+          ));
+          const dataURL = placeholderSprite.toDataURL(8);
+          value = `url(${dataURL})`;
+        }
+      }
+    }
+    
+    // Call the original setProperty function with our modified value
+    return originalSetProperty.call(this, propertyName, value, priority);
+  };
+  
+  // Also intercept style.backgroundImage direct assignments
+  const originalDescriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'backgroundImage');
+  if (originalDescriptor && originalDescriptor.set) {
+    Object.defineProperty(CSSStyleDeclaration.prototype, 'backgroundImage', {
+      set: function(value) {
+        if (typeof value === 'string') {
+          const pngMatch = value.match(/url\(['"]?([^'"]+\.png)['"]?\)/i);
+          if (pngMatch) {
+            const pngFile = pngMatch[1];
+            console.warn(`Intercepted direct backgroundImage PNG request: ${pngFile}`);
+            
+            // Check if we have a generated image for this PNG
+            if (window.gameImages && window.gameImages[pngFile]) {
+              // Replace with the data URL
+              value = `url(${window.gameImages[pngFile]})`;
+            } else {
+              // Use a placeholder data URL
+              const placeholderSprite = new PixelSprite(Array(4).fill().map(() => 
+                Array(4).fill().map(() => 
+                  `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`
+                )
+              ));
+              const dataURL = placeholderSprite.toDataURL(8);
+              value = `url(${dataURL})`;
+            }
+          }
+        }
+        originalDescriptor.set.call(this, value);
+      },
+      get: originalDescriptor.get,
+      configurable: true
+    });
+  }
+}
+
+// Initialize debug mode
+window.debugMode = false;
+
+// More helpful logging
+console.log("%cSierra Adventure Graphics System", "font-size: 16px; color: #00ff00; font-weight: bold;");
+console.log("%cAll visuals are procedurally generated. No PNG files are loaded.", "font-size: 12px; color: #00ff00;");
