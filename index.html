@@ -557,6 +557,9 @@
             // Start with walk as the default action
             setPlayerAction('walk');
             
+            // Initialize the hint system
+            initHintSystem();
+            
             // Show welcome message
             showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
         }
@@ -1074,6 +1077,133 @@
         function playerDeath(message) {
             showMessage(`${message} Would you like to RESTORE, RESTART, or QUIT?`);
             // In a full game, we'd handle this with proper Sierra-style restore/restart/quit options
+        }
+
+        // Add the missing hint system functions below the existing game functions
+        // Hint system functions
+        function initHintSystem() {
+            // State for the hint system
+            gameState.hints = {
+                active: false,
+                currentHint: null,
+                timer: null,
+                lastAction: Date.now(),
+                inactivityTime: 30000, // Show hint after 30 seconds of inactivity
+            };
+            
+            // Start the hint timer
+            resetHintTimer();
+            
+            // Add event listeners to reset the timer on user actions
+            document.addEventListener('click', resetHintTimer);
+            document.addEventListener('keydown', resetHintTimer);
+            document.getElementById('command-input').addEventListener('input', resetHintTimer);
+        }
+
+        function resetHintTimer() {
+            // If hints aren't initialized, do nothing
+            if (!gameState.hints) return;
+            
+            // Update the last action time
+            gameState.hints.lastAction = Date.now();
+            
+            // Clear any existing hint
+            clearHint();
+            
+            // Clear any existing timer
+            if (gameState.hints.timer) {
+                clearTimeout(gameState.hints.timer);
+            }
+            
+            // Set a new timer
+            gameState.hints.timer = setTimeout(() => {
+                showHint();
+            }, gameState.hints.inactivityTime);
+        }
+
+        function clearHint() {
+            // If hints aren't initialized, do nothing
+            if (!gameState.hints) return;
+            
+            // Remove any existing hint elements
+            const existingHints = document.querySelectorAll('.game-hint');
+            existingHints.forEach(hint => hint.remove());
+            
+            gameState.hints.active = false;
+            gameState.hints.currentHint = null;
+        }
+
+        function showHint() {
+            // If hints aren't initialized, do nothing
+            if (!gameState.hints) return;
+            
+            // Don't show hints if a message is being displayed
+            if (document.getElementById('message-box').style.display === 'block') {
+                resetHintTimer();
+                return;
+            }
+            
+            // Get the appropriate hint for the current room
+            const hint = getContextualHint();
+            
+            if (hint) {
+                // Create hint element - implementation will depend on hint type
+                console.log("Showing hint:", hint);
+                
+                // Just a basic implementation for now
+                const hintElement = document.createElement('div');
+                hintElement.className = 'game-hint';
+                hintElement.textContent = hint.text;
+                hintElement.style.position = 'absolute';
+                hintElement.style.bottom = '10px';
+                hintElement.style.left = '50%';
+                hintElement.style.transform = 'translateX(-50%)';
+                hintElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                hintElement.style.color = 'white';
+                hintElement.style.padding = '5px 10px';
+                hintElement.style.borderRadius = '5px';
+                hintElement.style.zIndex = '100';
+                
+                document.querySelector('.scene').appendChild(hintElement);
+                
+                // Animate the hint
+                hintElement.animate([
+                    { opacity: 0 },
+                    { opacity: 1 }
+                ], {
+                    duration: 500,
+                    fill: 'forwards'
+                });
+                
+                gameState.hints.active = true;
+            }
+            
+            // Reset the timer for the next hint
+            resetHintTimer();
+        }
+
+        function getContextualHint() {
+            // Basic implementation - return a hint based on current room
+            const room = gameState.currentRoom;
+            
+            switch (room) {
+                case 'bar':
+                    return { text: "Try talking to the bartender for information." };
+                case 'street':
+                    return { text: "The hotel entrance is on the left side of the street." };
+                case 'hotel-lobby':
+                    return { text: "Try using the elevator to go upstairs." };
+                case 'hotel-hallway':
+                    if (hasItem('hotel-key')) {
+                        return { text: "You have a key for room 204. Try using it on the door." };
+                    } else {
+                        return { text: "You need to find a key to access the rooms." };
+                    }
+                case 'secret-room':
+                    return { text: "Look for anything unusual in this room." };
+                default:
+                    return { text: "Click on objects to interact with them." };
+            }
         }
 
         // Start the game when page loads
