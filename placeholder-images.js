@@ -121,6 +121,25 @@ function createSceneBackground(width, height, baseColor, elements) {
     }
   }
   
+  // Add guidance elements - make doors and exits more noticeable
+  for (const element of elements) {
+    if (element.sprite && element.sprite.name === 'door') {
+      // Add a glow effect around doors
+      const doorX = element.x;
+      const doorY = element.y;
+      
+      for (let y = Math.max(0, doorY - 1); y < Math.min(scaleY, doorY + element.sprite.height + 1); y++) {
+        for (let x = Math.max(0, doorX - 1); x < Math.min(scaleX, doorX + element.sprite.width + 1); x++) {
+          // Only modify if we're at the border of the door
+          if (x === doorX - 1 || x === doorX + element.sprite.width || 
+              y === doorY - 1 || y === doorY + element.sprite.height) {
+            grid[y][x] = '#FFFF99'; // Yellow highlight
+          }
+        }
+      }
+    }
+  }
+  
   return new PixelSprite(grid);
 }
 
@@ -138,49 +157,58 @@ function adjustColor(color, amount) {
 
 // Create a simple furniture or object sprite
 function createFurnitureSprite(type) {
-  switch(type) {
-    case 'table':
-      return new PixelSprite([
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD]
-      ]);
-    case 'chair':
-      return new PixelSprite([
-        [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.WOOD]
-      ]);
-    case 'bed':
-      return new PixelSprite([
-        [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
-        [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
-        [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
-      ]);
-    case 'window':
-      return new PixelSprite([
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.GLASS, COLORS.GLASS, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.GLASS, COLORS.GLASS, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
-      ]);
-    case 'door':
-      return new PixelSprite([
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.METAL, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-        [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
-      ]);
-    default:
-      return new PixelSprite([
-        [COLORS.METAL, COLORS.METAL],
-        [COLORS.METAL, COLORS.METAL]
-      ]);
+  const sprite = (() => {
+    switch(type) {
+      case 'table':
+        return new PixelSprite([
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD]
+        ]);
+      case 'chair':
+        return new PixelSprite([
+          [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.TRANSPARENT, COLORS.WOOD]
+        ]);
+      case 'bed':
+        return new PixelSprite([
+          [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+          [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+          [COLORS.WOOD, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
+        ]);
+      case 'window':
+        return new PixelSprite([
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.GLASS, COLORS.GLASS, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.GLASS, COLORS.GLASS, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
+        ]);
+      case 'door':
+        return new PixelSprite([
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.METAL, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
+          [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD]
+        ]);
+      default:
+        return new PixelSprite([
+          [COLORS.METAL, COLORS.METAL],
+          [COLORS.METAL, COLORS.METAL]
+        ]);
+    }
+  })();
+  
+  // Add the type as a name property
+  if (sprite) {
+    sprite.name = type;
   }
+  
+  return sprite;
 }
 
 // Generate all game graphics with pixel art style
@@ -833,3 +861,30 @@ window.pixelArt.hints = {
   },
   createBalloon: createTextBalloon
 };
+
+// Update getContextualHint to be more helpful with navigation
+function getContextualHint() {
+  // Basic implementation - return a hint based on current room
+  const room = gameState.currentRoom;
+  
+  switch (room) {
+    case 'bar':
+      if (!gameState.flags.talkedToBartender) {
+        return { 
+          text: "Click on the bartender (on the right side) and select 'Talk' to get information.",
+          targetHotspot: 'bartender' 
+        };
+      } else if (!hasItem('hotel-key')) {
+        return { 
+          text: "Talk to the woman in the red dress and pick up the hotel key she offers.",
+          targetHotspot: 'mysterious-woman' 
+        };
+      } else {
+        return { 
+          text: "Use the door on the left side to exit to the street.",
+          targetHotspot: 'door' 
+        };
+      }
+    // ...existing code...
+  }
+}

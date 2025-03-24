@@ -562,6 +562,9 @@
             
             // Show welcome message
             showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
+            
+            // Enable debug mode by default to make objects visible
+            window.debugMode = true;
         }
         
         // Add function to generate player sprite
@@ -667,20 +670,43 @@
         
         // Helper function to draw room-specific elements on the canvas
         function drawRoomElements(ctx, room) {
-            // Draw any room-specific elements here
-            // This could be drawn from sprites defined in gameSprites
+            // Draw hotspots with actual character/object sprites
+            room.hotspots.forEach(hotspot => {
+                // Try to get a sprite for this hotspot
+                const spriteName = hotspot.name;
+                if (window.gameSprites && window.gameSprites[spriteName]) {
+                    // Draw the actual sprite
+                    const sprite = window.gameSprites[spriteName];
+                    sprite.render(ctx, hotspot.x, hotspot.y, 4); // Scale factor of 4
+                } else {
+                    // Just draw a placeholder for debug purposes
+                    if (window.debugMode) {
+                        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(hotspot.x, hotspot.y, hotspot.width, hotspot.height);
+                        
+                        // Draw name of the hotspot
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                        ctx.font = '10px monospace';
+                        ctx.fillText(hotspot.name, hotspot.x, hotspot.y - 2);
+                    }
+                }
+            });
             
-            // For demonstration, we'll draw hotspot indicators in debug mode
-            if (window.debugMode) {
-                room.hotspots.forEach(hotspot => {
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(hotspot.x, hotspot.y, hotspot.width, hotspot.height);
+            // Draw exit indicators to help navigation
+            if (room.exits) {
+                Object.entries(room.exits).forEach(([exitName, exitPos]) => {
+                    // Highlight exit areas with a subtle indicator
+                    ctx.fillStyle = 'rgba(100, 255, 100, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(exitPos.x, exitPos.y, 15, 0, Math.PI * 2);
+                    ctx.fill();
                     
-                    // Draw name of the hotspot
-                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
-                    ctx.font = '10px monospace';
-                    ctx.fillText(hotspot.name, hotspot.x, hotspot.y - 2);
+                    // Add an exit label
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.font = '12px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`To: ${exitName}`, exitPos.x, exitPos.y + 30);
                 });
             }
         }
@@ -777,8 +803,13 @@
                 if (actionResult.startsWith('exit-to-')) {
                     // Handle room transition
                     const newRoom = actionResult.replace('exit-to-', '');
-                    gameState.currentRoom = newRoom;
-                    updateRoom();
+                    showMessage(`Going to ${newRoom.replace(/-/g, ' ')}...`);
+                    
+                    // Add a slight delay for the message to be read before changing rooms
+                    setTimeout(() => {
+                        gameState.currentRoom = newRoom;
+                        updateRoom();
+                    }, 1500);
                 } else if (action === 'use' && hotspot.actions.pickup) {
                     // Add to inventory
                     addToInventory(hotspot.name);
@@ -794,6 +825,20 @@
                 } else {
                     // Show regular action message
                     showMessage(actionResult);
+                    
+                    // Special case for bartender dialog to provide navigation guidance
+                    if (hotspot.name === 'bartender' && action === 'talk' && gameState.flags.talkedToBartender) {
+                        setTimeout(() => {
+                            showMessage("Now that you have information about the hotel, you should try going outside. The door is on the left side of the bar.");
+                        }, 5000); // Show this hint after 5 seconds
+                    }
+                    
+                    // Special case for mysterious woman dialog
+                    if (hotspot.name === 'mysterious-woman' && action === 'talk') {
+                        setTimeout(() => {
+                            showMessage("Don't forget to pick up the hotel key on the table.");
+                        }, 5000);
+                    }
                 }
             } else {
                 showMessage(`You can't ${action} that.`);
