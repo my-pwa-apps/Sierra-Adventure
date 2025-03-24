@@ -85,14 +85,14 @@ function createSceneBackground(width, height, baseColor, elements) {
   const scaleY = Math.ceil(height / 32);
   
   // Create the base grid filled with the background color
-  const grid = Array(scaleY).fill().map(() => Array(scaleX).fill(baseColor));
+  const grid = Array(scaleY).fill(null).map(() => Array(scaleX).fill(baseColor));
   
   // Add floor/ground at the bottom
   const floorColor = adjustColor(baseColor, -20); // Darker color for floor
-  for (let y = Math.floor(scaleY * 0.8); y < scaleY; y++) {
-    for (let x = 0; x < scaleX; x++) {
-      grid[y][x] = floorColor;
-    }
+  const floorStartY = Math.floor(scaleY * 0.8);
+  for (let y = floorStartY; y < scaleY; y++) {
+    // Fill an entire row at once
+    grid[y].fill(floorColor);
   }
   
   // Add elements to the scene (walls, furniture, etc.)
@@ -108,39 +108,39 @@ function createSceneBackground(width, height, baseColor, elements) {
             }
           }
         }
+        
+        // Add door highlights if this is a door
+        if (sprite.name === 'door') {
+          addDoorHighlight(grid, x, y, sprite.width, sprite.height, scaleY, scaleX);
+        }
       }
     });
   }
   
   // Add some texture/noise to make the background less flat
-  for (let y = 0; y < scaleY; y++) {
-    for (let x = 0; x < scaleX; x++) {
+  for (let y = 0; y < scaleY; y += 2) {
+    for (let x = 0; x < scaleX; x += 2) {
       if (Math.random() > 0.9) {
         grid[y][x] = adjustColor(grid[y][x], Math.random() > 0.5 ? 10 : -10);
       }
     }
   }
   
-  // Add guidance elements - make doors and exits more noticeable
-  for (const element of elements) {
-    if (element.sprite && element.sprite.name === 'door') {
-      // Add a glow effect around doors
-      const doorX = element.x;
-      const doorY = element.y;
-      
-      for (let y = Math.max(0, doorY - 1); y < Math.min(scaleY, doorY + element.sprite.height + 1); y++) {
-        for (let x = Math.max(0, doorX - 1); x < Math.min(scaleX, doorX + element.sprite.width + 1); x++) {
-          // Only modify if we're at the border of the door
-          if (x === doorX - 1 || x === doorX + element.sprite.width || 
-              y === doorY - 1 || y === doorY + element.sprite.height) {
-            grid[y][x] = '#FFFF99'; // Yellow highlight
-          }
-        }
+  return new PixelSprite(grid);
+}
+
+// Extract door highlighting to its own function for cleaner code
+function addDoorHighlight(grid, doorX, doorY, doorWidth, doorHeight, scaleY, scaleX) {
+  // Add a glow effect around doors
+  for (let y = Math.max(0, doorY - 1); y < Math.min(scaleY, doorY + doorHeight + 1); y++) {
+    for (let x = Math.max(0, doorX - 1); x < Math.min(scaleX, doorX + doorWidth + 1); x++) {
+      // Only modify if we're at the border of the door
+      if (x === doorX - 1 || x === doorX + doorWidth || 
+          y === doorY - 1 || y === doorY + doorHeight) {
+        grid[y][x] = '#FFFF99'; // Yellow highlight
       }
     }
   }
-  
-  return new PixelSprite(grid);
 }
 
 // Helper function to adjust color brightness
