@@ -769,28 +769,566 @@
                 ctx.restore();
             },
             
-            // Remaining methods follow the same pattern - proper 'this' binding and organization
-            // ...existing methods with 'this' context fixed...
-
-            // Event handlers with proper this binding
-            handleSceneClick: function(e) {
-                // Get click position relative to scene
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+            // Monitor network requests to catch any PNG loading attempts
+            monitorNetworkForPngRequests: function() {
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options) {
+                    if (typeof url === 'string' && url.endsWith('.png')) {
+                        console.error(`PNG fetch attempt blocked: ${url}`);
+                        // Return a promise that resolves to an empty response
+                        return Promise.resolve(new Response('', {
+                            status: 200,
+                            statusText: 'OK'
+                        }));
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
                 
-                // Check if we clicked on a hotspot
-                const clickedHotspot = this.findHotspotAt(x, y);
+                // Also monkey patch XMLHttpRequest
+                const originalOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url) {
+                    if (typeof url === 'string' && url.endsWith('.png')) {
+                        console.error(`PNG XHR attempt blocked: ${url}`);
+                        // Replace the URL with a data URL
+                        if (window.gameImages && window.gameImages[url]) {
+                            arguments[1] = window.gameImages[url];
+                        } else {
+                            // Use a blank data URL
+                            arguments[1] = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        }
+                    }
+                    return originalOpen.apply(this, arguments);
+                };
                 
-                if (clickedHotspot) {
-                    this.handleHotspotInteraction(clickedHotspot);
-                } else if (this.gameState.playerAction === 'walk') {
-                    this.movePlayer(x, y);
+                console.log('Network monitoring active - will detect any PNG load attempts');
+            },
+            
+            // Set player action
+            setPlayerAction: function(action) {
+                this.gameState.playerAction = action;
+                
+                // Update UI to show selected action
+                Object.values(this.domElements.actionButtons).forEach(btn => {
+                    btn.style.backgroundColor = '#555';
+                });
+                
+                if (this.domElements.actionButtons[action]) {
+                    this.domElements.actionButtons[action].style.backgroundColor = '#a00';
                 }
             },
             
-            // Add remaining methods...
-            // Most existing method implementations remain the same but with 'this' references fixed
+            // Find hotspot at a certain position
+            findHotspotAt: function(x, y) {
+                const room = this.rooms[this.gameState.currentRoom];
+                if (!room) return null;
+                
+                for (const hotspot of room.hotspots) {
+                    if (x >= hotspot.x && x <= hotspot.x + hotspot.width &&
+                        y >= hotspot.y && y <= hotspot.y + hotspot.height) {
+                        return hotspot;
+                    }
+                }
+                return null;
+            },
+            
+            // Handle hotspot interaction
+            handleHotspotInteraction: function(hotspot) {
+                // Reset the hint timer whenever the player interacts with a hotspot
+                this.resetHintTimer();
+                
+                const action = this.gameState.playerAction;
+                let actionResult = hotspot.actions[action];
+                
+                if (actionResult) {
+                    // If action is a function, execute it
+                    if (typeof actionResult === 'function') {
+                        actionResult = actionResult();
+                    }
+                    
+                    if (actionResult.startsWith('exit-to-')) {
+                        // Handle room transition
+                        const newRoom = actionResult.replace('exit-to-', '');
+                        this.showMessage(`Going to ${newRoom.replace(/-/g, ' ')}...`);
+                        
+                        // Add a slight delay for the message to be read before changing rooms
+                        setTimeout(() => {
+                            this.gameState.currentRoom = newRoom;
+                            this.updateRoom();
+                        }, 1500);
+                    } else if (action === 'use' && hotspot.actions.pickup) {
+                        // Add to inventory
+                        this.addToInventory(hotspot.name);
+                        this.showMessage(`You picked up the ${hotspot.name}.`);
+                        this.addScore(10);
+                        
+                        // Remove hotspot from room
+                        const index = this.rooms[this.gameState.currentRoom].hotspots.findIndex(h => h.name === hotspot.name);
+                        if (index !== -1) {
+                            this.rooms[this.gameState.currentRoom].hotspots.splice(index, 1);
+                            this.updateRoom();
+                        }
+                    } else {
+                        // Show regular action message
+                        this.showMessage(actionResult);
+                        
+                        // Special case for bartender dialog to provide navigation guidance
+                        if (hotspot.name === 'bartender' && action === 'talk' && this.gameState.flags.talkedToBartender) {
+                            setTimeout(() => {
+                                this.showMessage("Now that you have information about the hotel, you should try going outside. The door is on the left side of the bar.");
+                            }, 5000); // Show this hint after 5 seconds
+                        }
+                        
+                        // Special case for mysterious woman dialog
+                        if (hotspot.name === 'mysterious-woman' && action === 'talk') {
+                            setTimeout(() => {
+                                this.showMessage("Don't forget to pick up the hotel key on the table.");
+                            }, 5000);
+                        }
+                    }
+                } else {
+                    this.showMessage(`You can't ${action} that.`);
+                }
+            },
+            
+            // Handle keyboard movement
+            handleKeyboardMovement: function(e) {
+                // Only process arrow keys when no modal is open
+                if (this.domElements.messageBox.style.display === 'block') {
+                    return;
+                }
+                
+                // If player is in walk mode, handle arrow key movement
+                if (this.gameState.playerAction === 'walk') {
+                    const player = this.domElements.player;
+                    const currentX = parseInt(player.style.left) || window.innerWidth / 2;
+                    const currentY = 400 - 30 - 64; // Scene height - bottom margin - player height
+                    const moveStep = 10; // Pixels to move per keypress
+                    
+                    let newX = currentX;
+                    
+                    switch (e.key) {
+                        case 'ArrowLeft':
+                        case 'a':
+                        case 'A':
+                            newX = Math.max(0, currentX - moveStep);
+                            e.preventDefault();
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                        case 'D':
+                            newX = Math.min(640 - 32, currentX + moveStep); // Scene width - player width
+                            e.preventDefault();
+                            break;
+                        case 'ArrowUp':
+                        case 'w':
+                        case 'W':
+                            // Convert to scene coordinate system for movePlayer
+                            this.movePlayer(currentX, currentY - moveStep);
+                            e.preventDefault();
+                            return;
+                        case 'ArrowDown':
+                        case 's':
+                        case 'S':
+                            // Convert to scene coordinate system for movePlayer
+                            this.movePlayer(currentX, currentY + moveStep);
+                            e.preventDefault();
+                            return;
+                        default:
+                            return; // Ignore other keys
+                    }
+                    
+                    // Use existing movePlayer function for left/right movement
+                    if (newX !== currentX) {
+                        this.movePlayer(newX, 400 - 30);
+                    }
+                }
+            },
+            
+            // Move the player to a new position
+            movePlayer: function(x, y) {
+                const player = this.domElements.player;
+                
+                // Ensure player stays within scene boundaries
+                const sceneWidth = 640;
+                const sceneHeight = 400;
+                const playerWidth = 32;
+                const playerHeight = 64;
+                
+                // Constrain to scene boundaries
+                x = Math.max(0, Math.min(sceneWidth - playerWidth, x));
+                
+                // For y coordinate, we need to convert between different coordinate systems
+                // When clicking, y is relative to the scene top
+                // When setting player position, the bottom property is relative to scene bottom
+                
+                // Keep player on the "floor" level
+                const floorLevel = 30; // Distance from bottom of scene
+                player.style.left = `${x}px`;
+                player.style.bottom = `${floorLevel}px`; // Keep player at bottom of scene
+                
+                // Check for hotspot interactions (optional)
+                this.checkPositionForHotspots(x, sceneHeight - floorLevel - playerHeight);
+                
+                // Reset the hint timer whenever the player moves
+                this.resetHintTimer();
+            },
+            
+            // Check for hotspots near the player
+            checkPositionForHotspots: function(x, y) {
+                // Get the center point of the player
+                const playerCenterX = x + 16; // Half player width
+                
+                // Check if player is near any hotspot in the current room
+                const room = this.rooms[this.gameState.currentRoom];
+                if (!room) return;
+                
+                let nearestHotspot = null;
+                let shortestDistance = 50; // Minimum detection distance
+                
+                room.hotspots.forEach(hotspot => {
+                    // Calculate distance from player to hotspot center
+                    const hotspotCenterX = hotspot.x + hotspot.width / 2;
+                    
+                    // Simple distance calculation (just using X for side-scrolling simplicity)
+                    const distance = Math.abs(playerCenterX - hotspotCenterX);
+                    
+                    // Update nearest hotspot if this one is closer
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        nearestHotspot = hotspot;
+                    }
+                });
+                
+                // Optionally, display some subtle hint that the player is near a hotspot
+                if (nearestHotspot && window.debugMode) {
+                    console.log(`Near hotspot: ${nearestHotspot.name}`);
+                }
+                
+                return nearestHotspot;
+            },
+            
+            // Process a command entered by the player
+            processCommand: function(command) {
+                command = command.toLowerCase().trim();
+                
+                if (command === 'look' || command === 'look around') {
+                    this.showMessage(this.rooms[this.gameState.currentRoom].description);
+                } else if (command.startsWith('look at ')) {
+                    const target = command.replace('look at ', '');
+                    this.lookAtObject(target);
+                } else if (command.startsWith('talk to ')) {
+                    const target = command.replace('talk to ', '');
+                    this.talkToCharacter(target);
+                } else if (command === 'inventory' || command === 'i') {
+                    this.showInventory();
+                } else if (command.startsWith('use ')) {
+                    const parts = command.replace('use ', '').split(' on ');
+                    if (parts.length === 2) {
+                        this.useItemOn(parts[0], parts[1]);
+                    } else {
+                        this.useItem(parts[0]);
+                    }
+                } else if (command === 'help') {
+                    this.showMessage("Available commands: look, look at [object], talk to [character], use [item], use [item] on [object], inventory");
+                } else {
+                    this.showMessage("I don't understand that command. Type 'help' for a list of commands.");
+                }
+            },
+            
+            // Look at an object in the room
+            lookAtObject: function(objectName) {
+                const room = this.rooms[this.gameState.currentRoom];
+                const hotspot = room.hotspots.find(h => h.name.toLowerCase() === objectName.toLowerCase());
+                
+                if (hotspot && hotspot.actions.look) {
+                    this.showMessage(hotspot.actions.look);
+                } else {
+                    // Check inventory
+                    const inventoryItem = this.gameState.inventory.find(i => i.toLowerCase() === objectName.toLowerCase());
+                    if (inventoryItem) {
+                        this.showMessage(`You examine the ${inventoryItem} carefully.`);
+                    } else {
+                        this.showMessage(`You don't see a ${objectName} here.`);
+                    }
+                }
+            },
+            
+            // Talk to a character in the room
+            talkToCharacter: function(characterName) {
+                const room = this.rooms[this.gameState.currentRoom];
+                const character = room.hotspots.find(h => h.name.toLowerCase() === characterName.toLowerCase());
+                
+                if (character && character.actions.talk) {
+                    const talkResult = typeof character.actions.talk === 'function' ? 
+                                     character.actions.talk() : character.actions.talk;
+                    this.showMessage(talkResult);
+                } else {
+                    this.showMessage(`You can't talk to ${characterName}.`);
+                }
+            },
+            
+            // Use an item from the inventory
+            useItem: function(itemName) {
+                if (this.hasItem(itemName)) {
+                    this.showMessage(`You use the ${itemName}, but nothing happens.`);
+                } else {
+                    this.showMessage(`You don't have a ${itemName}.`);
+                }
+            },
+            
+            // Use an item on a target
+            useItemOn: function(itemName, targetName) {
+                if (this.hasItem(itemName)) {
+                    const room = this.rooms[this.gameState.currentRoom];
+                    const target = room.hotspots.find(h => h.name.toLowerCase() === targetName.toLowerCase());
+                    
+                    if (target) {
+                        this.showMessage(`You try to use the ${itemName} on the ${targetName}, but nothing happens.`);
+                    } else {
+                        this.showMessage(`You don't see a ${targetName} here.`);
+                    }
+                } else {
+                    this.showMessage(`You don't have a ${itemName}.`);
+                }
+            },
+            
+            // Add an item to the player's inventory
+            addToInventory: function(item) {
+                this.gameState.inventory.push(item);
+                this.updateInventoryDisplay();
+            },
+            
+            // Check if the player has an item
+            hasItem: function(itemName) {
+                return this.gameState.inventory.some(item => item.toLowerCase() === itemName.toLowerCase());
+            },
+            
+            // Update the inventory display
+            updateInventoryDisplay: function() {
+                const inventoryElement = this.domElements.inventory;
+                inventoryElement.innerHTML = '';
+                
+                this.gameState.inventory.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'inventory-item';
+                    itemElement.textContent = item;
+                    itemElement.addEventListener('click', () => this.selectInventoryItem(item));
+                    
+                    inventoryElement.appendChild(itemElement);
+                });
+            },
+            
+            // Select an item from the inventory
+            selectInventoryItem: function(item) {
+                this.gameState.selectedItem = item;
+                this.showMessage(`You selected the ${item}.`);
+            },
+            
+            // Toggle the inventory display
+            toggleInventory: function() {
+                const inventoryElement = this.domElements.inventory;
+                const currentDisplay = window.getComputedStyle(inventoryElement).display;
+                
+                inventoryElement.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+                
+                if (currentDisplay === 'none') {
+                    this.showInventory();
+                }
+            },
+            
+            // Show inventory contents as a message
+            showInventory: function() {
+                if (this.gameState.inventory.length > 0) {
+                    this.showMessage(`You are carrying: ${this.gameState.inventory.join(', ')}`);
+                } else {
+                    this.showMessage("You aren't carrying anything.");
+                }
+            },
+            
+            // Show a message to the player
+            showMessage: function(message) {
+                this.domElements.messageText.textContent = message;
+                this.domElements.messageBox.style.display = 'block';
+            },
+            
+            // Close the message box
+            closeMessage: function() {
+                this.domElements.messageBox.style.display = 'none';
+            },
+            
+            // Update the game time
+            updateGameTime: function() {
+                this.gameState.gameTime++;
+                
+                // Format time as hours:minutes
+                const hours = Math.floor(this.gameState.gameTime / 60) % 24;
+                const minutes = this.gameState.gameTime % 60;
+                
+                this.domElements.timeElement.textContent = 
+                    `Time: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            },
+            
+            // Add points to the score
+            addScore: function(points) {
+                this.gameState.score += points;
+                this.domElements.scoreElement.textContent = `Score: ${this.gameState.score} of 500`;
+                
+                // Show a message for the first time points are earned
+                if (this.gameState.score === points) {
+                    this.showMessage(`You earned your first ${points} points! Keep exploring for more.`);
+                }
+            },
+            
+            // Handle player death (Sierra-style)
+            playerDeath: function(message) {
+                this.showMessage(`${message} Would you like to RESTORE, RESTART, or QUIT?`);
+                // In a full game, we'd handle this with proper Sierra-style restore/restart/quit options
+            },
+            
+            // Initialize the hint system
+            initHintSystem: function() {
+                // State for the hint system
+                this.gameState.hints = {
+                    active: false,
+                    currentHint: null,
+                    timer: null,
+                    lastAction: Date.now(),
+                    inactivityTime: 30000, // Show hint after 30 seconds of inactivity
+                };
+                
+                // Start the hint timer
+                this.resetHintTimer();
+                
+                // Add event listeners to reset the timer on user actions
+                document.addEventListener('click', () => this.resetHintTimer());
+                document.addEventListener('keydown', () => this.resetHintTimer());
+                this.domElements.commandInput.addEventListener('input', () => this.resetHintTimer());
+            },
+            
+            // Reset the hint timer
+            resetHintTimer: function() {
+                // If hints aren't initialized, do nothing
+                if (!this.gameState.hints) return;
+                
+                // Update the last action time
+                this.gameState.hints.lastAction = Date.now();
+                
+                // Clear any existing hint
+                this.clearHint();
+                
+                // Clear any existing timer
+                if (this.gameState.hints.timer) {
+                    clearTimeout(this.gameState.hints.timer);
+                }
+                
+                // Set a new timer
+                this.gameState.hints.timer = setTimeout(() => {
+                    this.showHint();
+                }, this.gameState.hints.inactivityTime);
+            },
+            
+            // Clear any active hint
+            clearHint: function() {
+                // If hints aren't initialized, do nothing
+                if (!this.gameState.hints) return;
+                
+                // Remove any existing hint elements
+                const existingHints = document.querySelectorAll('.game-hint');
+                existingHints.forEach(hint => hint.remove());
+                
+                this.gameState.hints.active = false;
+                this.gameState.hints.currentHint = null;
+            },
+            
+            // Show a hint to the player
+            showHint: function() {
+                // If hints aren't initialized, do nothing
+                if (!this.gameState.hints) return;
+                
+                // Don't show hints if a message is being displayed
+                if (this.domElements.messageBox.style.display === 'block') {
+                    this.resetHintTimer();
+                    return;
+                }
+                
+                // Get the appropriate hint for the current room
+                const hint = this.getContextualHint();
+                
+                if (hint) {
+                    // Create hint element - implementation will depend on hint type
+                    console.log("Showing hint:", hint);
+                    
+                    // Just a basic implementation for now
+                    const hintElement = document.createElement('div');
+                    hintElement.className = 'game-hint';
+                    hintElement.textContent = hint.text;
+                    hintElement.style.position = 'absolute';
+                    hintElement.style.bottom = '10px';
+                    hintElement.style.left = '50%';
+                    hintElement.style.transform = 'translateX(-50%)';
+                    hintElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                    hintElement.style.color = 'white';
+                    hintElement.style.padding = '5px 10px';
+                    hintElement.style.borderRadius = '5px';
+                    hintElement.style.zIndex = '100';
+                    
+                    this.domElements.scene.appendChild(hintElement);
+                    
+                    // Animate the hint
+                    hintElement.animate([
+                        { opacity: 0 },
+                        { opacity: 1 }
+                    ], {
+                        duration: 500,
+                        fill: 'forwards'
+                    });
+                    
+                    this.gameState.hints.active = true;
+                }
+                
+                // Reset the timer for the next hint
+                this.resetHintTimer();
+            },
+            
+            // Get contextual hints based on current room and game state
+            getContextualHint: function() {
+                // Basic implementation - return a hint based on current room
+                const room = this.gameState.currentRoom;
+                
+                switch (room) {
+                    case 'bar':
+                        if (!this.gameState.flags.talkedToBartender) {
+                            return { 
+                                text: "Click on the bartender (on the right side) and select 'Talk' to get information.",
+                                targetHotspot: 'bartender' 
+                            };
+                        } else if (!this.hasItem('hotel-key')) {
+                            return { 
+                                text: "Talk to the woman in the red dress and pick up the hotel key she offers.",
+                                targetHotspot: 'mysterious-woman' 
+                            };
+                        } else {
+                            return { 
+                                text: "Use the door on the left side to exit to the street.",
+                                targetHotspot: 'door' 
+                            };
+                        }
+                    case 'street':
+                        return { text: "The hotel entrance is on the left side of the street." };
+                    case 'hotel-lobby':
+                        return { text: "Try using the elevator to go upstairs." };
+                    case 'hotel-hallway':
+                        if (this.hasItem('hotel-key')) {
+                            return { text: "You have a key for room 204. Try using it on the door." };
+                        } else {
+                            return { text: "You need to find a key to access the rooms." };
+                        }
+                    case 'secret-room':
+                        return { text: "Look for anything unusual in this room." };
+                    default:
+                        return { text: "Click on objects to interact with them." };
+                }
+            }
         };
 
         // Start the game when page loads
