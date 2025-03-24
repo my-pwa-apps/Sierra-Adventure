@@ -280,6 +280,17 @@ function generateGameGraphics() {
   window.gameImages['secret-room-background.png'] = window.gameImages.secretRoomScene;
   window.gameImages['player.png'] = window.gameImages.playerCharacter;
   
+  // IMPORTANT FIX: Add entries without the .png extension for direct lookup
+  window.gameImages['bar-background'] = window.gameImages.barScene;
+  window.gameImages['street-background'] = window.gameImages.streetScene;
+  window.gameImages['hotel-lobby-background'] = window.gameImages.hotelLobbyScene;
+  window.gameImages['hotel-hallway-background'] = window.gameImages.hotelHallwayScene;
+  window.gameImages['secret-room-background'] = window.gameImages.secretRoomScene;
+  window.gameImages['player'] = window.gameImages.playerCharacter;
+  
+  // Debug: log available image keys to help diagnose missing images
+  console.log("Available image keys:", Object.keys(window.gameImages));
+  
   // Also handle CSS background-image links to PNG files
   interceptCssBackgroundImages();
   
@@ -542,3 +553,138 @@ window.debugMode = false;
 // More helpful logging
 console.log("%cSierra Adventure Graphics System", "font-size: 16px; color: #00ff00; font-weight: bold;");
 console.log("%cAll visuals are procedurally generated. No PNG files are loaded.", "font-size: 12px; color: #00ff00;");
+
+// Enhanced image fallback handling for more robust behavior
+function getImageFallback(key) {
+  // Try multiple variants of the key
+  const variants = [
+    key,                    // Original key
+    key.replace('.png', ''), // Without extension
+    key + '.png',           // With extension added
+    key.toLowerCase(),      // Lowercase
+    key.toLowerCase().replace('.png', ''), // Lowercase without extension
+    key.toLowerCase() + '.png' // Lowercase with extension
+  ];
+  
+  // Check all variants
+  for (const variant of variants) {
+    if (window.gameImages && window.gameImages[variant]) {
+      console.log(`Image found using variant: ${variant} (original key: ${key})`);
+      return window.gameImages[variant];
+    }
+  }
+  
+  // If we still can't find it, generate a placeholder with text
+  console.warn(`No image found for ${key} - Generating placeholder with label`);
+  const placeholderSprite = new PixelSprite(Array(16).fill().map(() => 
+    Array(16).fill(getRandomColor())
+  ));
+  
+  // Draw text on the placeholder showing the missing key
+  const dataURL = createLabeledPlaceholder(key, 64, 64);
+  window.gameImages[key] = dataURL;
+  return dataURL;
+}
+
+// Helper function to create a labeled placeholder
+function createLabeledPlaceholder(label, width, height) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  
+  // Checkerboard background
+  const tileSize = 8;
+  for (let y = 0; y < height; y += tileSize) {
+    for (let x = 0; x < width; x += tileSize) {
+      ctx.fillStyle = (x + y) % (tileSize * 2) === 0 ? '#333' : '#666';
+      ctx.fillRect(x, y, tileSize, tileSize);
+    }
+  }
+  
+  // Draw a border
+  ctx.strokeStyle = '#f00';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(2, 2, width-4, height-4);
+  
+  // Add the label
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Break long labels into multiple lines
+  const words = label.split(/[/\\.-]/);
+  const maxChars = 10;
+  const lines = [];
+  let currentLine = '';
+  
+  words.forEach(word => {
+    if ((currentLine + word).length <= maxChars) {
+      currentLine += (currentLine ? '-' : '') + word;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  });
+  if (currentLine) lines.push(currentLine);
+  
+  // Draw each line
+  lines.forEach((line, i) => {
+    ctx.fillText(
+      line, 
+      width/2, 
+      height/2 + (i - lines.length/2 + 0.5) * 12
+    );
+  });
+  
+  return canvas.toDataURL();
+}
+
+function getRandomColor() {
+  return `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+}
+
+// Replace the original image setter with our enhanced version
+const originalSetSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src').set;
+Object.defineProperty(HTMLImageElement.prototype, 'src', {
+  set: function(value) {
+    // Ensure we have our sprites generated
+    if (!window.gameImages) {
+      generateGameGraphics();
+    }
+    
+    // Look for the image in our sprite collection
+    let imageSrc = value;
+    
+    // Check if this is a PNG reference or any image we should intercept
+    if (typeof value === 'string' && (value.endsWith('.png') || value.endsWith('.jpg') || value.endsWith('.gif'))) {
+      if (window.gameImages[value]) {
+        imageSrc = window.gameImages[value];
+      } else {
+        // Use our enhanced fallback system
+        imageSrc = getImageFallback(value);
+      }
+    }
+    
+    // Call the original setter with our processed source
+    originalSetSrc.call(this, imageSrc);
+  },
+  get: function() {
+    return this.getAttribute('src') || '';
+  },
+  configurable: true
+});
+
+// Add global debug toggle
+window.toggleDebug = function() {
+  window.debugMode = !window.debugMode;
+  console.log(`Debug mode ${window.debugMode ? 'enabled' : 'disabled'}`);
+  // Force redraw of the current room
+  if (typeof updateRoom === 'function') {
+    updateRoom();
+  }
+};
+
+// Initialize with pre-generated sprites to ensure they're ready before needed
+generateGameGraphics();

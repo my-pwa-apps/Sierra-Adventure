@@ -569,9 +569,28 @@
             // Clear the canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw the background - use our generated backgrounds from gameSprites
-            const backgroundKey = room.background.replace('.png', '');
-            if (window.gameImages && window.gameImages[backgroundKey]) {
+            // Try multiple variants of the background key to be more robust
+            let backgroundImage = null;
+            const variants = [
+                room.background,                // Original (with .png)
+                room.background.replace('.png', ''),  // Without extension
+                room.background.toLowerCase(),        // Lowercase version
+                room.background.toLowerCase().replace('.png', '') // Lowercase without extension
+            ];
+            
+            // Also check for scene-named variants
+            const sceneName = gameState.currentRoom + 'Scene';
+            variants.push(sceneName);
+            
+            // Find the image using any of these variants
+            for (const variant of variants) {
+                if (window.gameImages && window.gameImages[variant]) {
+                    backgroundImage = window.gameImages[variant];
+                    break;
+                }
+            }
+            
+            if (backgroundImage) {
                 // Create a temporary image to draw our data URL
                 const img = new Image();
                 img.onload = function() {
@@ -579,12 +598,19 @@
                     // Draw room-specific elements once background is loaded
                     drawRoomElements(ctx, room);
                 };
-                img.src = window.gameImages[backgroundKey];
+                img.src = backgroundImage;
             } else {
                 // Fallback if background not found
                 console.warn(`Background not found: ${room.background} - Using fallback`);
                 ctx.fillStyle = '#222222';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw fallback text
+                ctx.fillStyle = '#FF0000';
+                ctx.font = '20px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Missing background: ${room.background}`, canvas.width/2, canvas.height/2);
+                
                 // Draw room-specific elements
                 drawRoomElements(ctx, room);
             }
