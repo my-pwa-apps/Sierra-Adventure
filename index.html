@@ -502,590 +502,65 @@
                             look: "A small brown package wrapped in paper. No one seems to be watching it.",
                             use: "You quickly grab the package when no one is looking!",
                             pickup: true
-                        }    // Initialize network monitoring to catch PNG load attempts
+                        }
                     },
                     {
-                        name: 'exit',    // Generate player sprite directly in the player div
-                        x: 100, y: 150,layerSprite();
+                        name: 'exit',
+                        x: 100, y: 150,
                         width: 50, height: 100,
-                        description: "The exit back to the hallway.",    updateRoom();
-                        actions: {dateGameTime, 1000);
+                        description: "The exit back to the hallway.",
+                        actions: {
                             look: "The door leading back to the hotel hallway.",
                             use: "exit-to-hotel-hallway"
                         }
                     }
-                ],/ Event listeners
-                exits: { document.getElementById('command-input').addEventListener('keypress', function(e) {
-                    'hotel-hallway': { x: 100, y: 200 }        if (e.key === 'Enter') {
+                ],
+                exits: {
+                    'hotel-hallway': { x: 100, y: 200 }
                 }
             }
         };
 
         // Game initialization
-        function initGame() {    document.getElementById('look-btn').addEventListener('click', () => setPlayerAction('look'));
-            // Initialize network monitoring to catch PNG load attemptsyerAction('talk'));
-            monitorNetworkForPngRequests();    document.getElementById('walk-btn').addEventListener('click', () => setPlayerAction('walk'));
-            se-btn').addEventListener('click', () => setPlayerAction('use'));
-            // Generate player sprite directly in the player divInventory);
-            generatePlayerSprite();    
-            ventListener('click', closeMessage);
+        function initGame() {
+            // Initialize network monitoring to catch PNG load attempts
+            monitorNetworkForPngRequests();
+            
+            // Generate player sprite directly in the player div
+            generatePlayerSprite();
+            
             updateRoom();
-            setInterval(updateGameTime, 1000);    // Click handler for the scene
-            EventListener('click', handleSceneClick);
+            setInterval(updateGameTime, 1000);
+            
             // Event listeners
-            document.getElementById('command-input').addEventListener('keypress', function(e) {    // Add keyboard control for character movement
-                if (e.key === 'Enter') {stener('keydown', handleKeyboardMovement);
+            document.getElementById('command-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
                     processCommand(this.value);
-                    this.value = '';       // Start with walk as the default action
-                }                setPlayerAction('walk');
+                    this.value = '';
+                }
             });
             
-            document.getElementById('look-btn').addEventListener('click', () => setPlayerAction('look'));ra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
+            document.getElementById('look-btn').addEventListener('click', () => setPlayerAction('look'));
             document.getElementById('talk-btn').addEventListener('click', () => setPlayerAction('talk'));
             document.getElementById('walk-btn').addEventListener('click', () => setPlayerAction('walk'));
             document.getElementById('use-btn').addEventListener('click', () => setPlayerAction('use'));
-            document.getElementById('inventory-btn').addEventListener('click', toggleInventory);nce
-            lete) {
-            document.getElementById('message-ok').addEventListener('click', closeMessage);const introContainer = document.createElement('div');
-            ntainer';
-            // Click handler for the sceneintroContainer.style.position = 'absolute';
+            document.getElementById('inventory-btn').addEventListener('click', toggleInventory);
+            
+            document.getElementById('message-ok').addEventListener('click', closeMessage);
+            
+            // Click handler for the scene
             document.querySelector('.scene').addEventListener('click', handleSceneClick);
             
             // Add keyboard control for character movement
-            document.addEventListener('keydown', handleKeyboardMovement);tainer.style.height = '100%';
+            document.addEventListener('keydown', handleKeyboardMovement);
             
             // Start with walk as the default action
             setPlayerAction('walk');
             
-            // Show welcome messageolumn';
-            showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);ntroContainer.style.justifyContent = 'center';
-        }introContainer.style.alignItems = 'center';
-y = "'Courier New', monospace";
-        // Add function to generate player sprite   
-        function generatePlayerSprite() {            document.body.appendChild(introContainer);
-            const playerDiv = document.getElementById('player');
-            const canvas = document.createElement('canvas');on
-            canvas.width = 32;'button');
-            canvas.height = 64;
-            canvas.style.width = '100%';e';
-            canvas.style.height = '100%';skipButton.style.bottom = '20px';
-            ght = '20px';
-            const ctx = canvas.getContext('2d');
-            skipButton.style.backgroundColor = '#555';
-            // Get the player sprite from our sprite collection
-            if (window.gameSprites && window.gameSprites.playerCharacter) {none';
-                window.gameSprites.playerCharacter.render(ctx, 0, 0, 8); // Scale up by 8ursor = 'pointer';
-            } else {
-                // Fallback player sprite if our generated one isn't available
-                ctx.fillStyle = '#3050FF'; // Blue
-                ctx.fillRect(8, 16, 16, 32); // Body
-                ctx.fillStyle = '#FFC8A2'; // Skin tone  {
-                ctx.fillRect(8, 0, 16, 16); // Head        title: "Sierra Adventure",
-            }lassic adventure games",
-            
-            playerDiv.appendChild(canvas);
-        }    {
-
-        // Modified updateRoom function to use canvas instead of background-imageaffer, a 40-year-old bachelor looking for love in the city of Lost Wages.",
-        function updateRoom() {
-            const room = rooms[gameState.currentRoom];
-            const canvas = document.getElementById('room-canvas');
-            const ctx = canvas.getContext('2d');   title: "Your Quest",
-                   content: "After a lifetime of living with your mother, you've finally decided it's time to find romance and adventure.",
-            // Clear the canvas        image: null
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Try multiple variants of the background key to be more robustventure",
-            let backgroundImage = null;d rumors of mysterious happenings at the Starlight Hotel. Perhaps investigating will lead to the excitement you seek...",
-            const variants = [
-                room.background,                // Original (with .png)
-                room.background.replace('.png', ''),  // Without extension
-                room.background.toLowerCase(),        // Lowercase version
-                room.background.toLowerCase().replace('.png', '') // Lowercase without extension
-            ];ideContent = document.createElement('div');
-            
-            // Also check for scene-named variants
-            const sceneName = gameState.currentRoom + 'Scene';deContent);
-            variants.push(sceneName);
-            t imageContainer = document.createElement('div');
-            // Find the image using any of these variantsht = '200px';
-            for (const variant of variants) {100%';
-                if (window.gameImages && window.gameImages[variant]) {flex';
-                    backgroundImage = window.gameImages[variant];ontent = 'center';
-                    break;
-                }eContainer.style.marginBottom = '20px';
-            }ontainer, slideContent);
-            
-            if (backgroundImage) {unction showSlide(index) {
-                // Create a temporary image to draw our data URL    const slide = slides[index];
-                const img = new Image();
-                img.onload = function() {
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    // Draw room-specific elements once background is loaded    imageContainer.innerHTML = '';
-                    drawRoomElements(ctx, room);
-                };
-                img.src = backgroundImage;
-            } else {
-                // Fallback if background not found
-                console.warn(`Background not found: ${room.background} - Using fallback`);
-                ctx.fillStyle = '#222222';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw fallback texttitleElement.style.marginBottom = '20px';
-                ctx.fillStyle = '#FF0000';
-                ctx.font = '20px monospace'; titleElement.textContent = slide.title;
-                ctx.textAlign = 'center';    slideContent.appendChild(titleElement);
-                ctx.fillText(`Missing background: ${room.background}`, canvas.width/2, canvas.height/2);
-                iter effect
-                // Draw room-specific elements       const contentElement = document.createElement('p');
-                drawRoomElements(ctx, room);        contentElement.style.fontSize = '18px';
-            }
-            ntElement);
-            // Clear existing hotspots
-            const existingHotspots = document.querySelectorAll('.hotspot');
-            existingHotspots.forEach(h => h.remove());    setTimeout(() => {
-            
-            // Add new hotspotsyle.opacity = '1';
-            room.hotspots.forEach(hotspot => {
-                const hotspotElement = document.createElement('div');
-                hotspotElement.className = 'hotspot';or content
-                hotspotElement.dataset.name = hotspot.name;
-                hotspotElement.style.left = `${hotspot.x}px`;t txt = slide.content;
-                hotspotElement.style.top = `${hotspot.y}px`;racter
-                hotspotElement.style.width = `${hotspot.width}px`;
-                hotspotElement.style.height = `${hotspot.height}px`;
-                
-                document.querySelector('.scene').appendChild(hotspotElement);     contentElement.innerHTML += txt.charAt(i);
-            });           i++;
-                           setTimeout(typeWriter, speed);
-            // Show room description            } else {
-            showMessage(room.description);
-        }
-        document.createElement('button');
-        // Helper function to draw room-specific elements on the canvas= index < slides.length - 1 ? 'Continue' : 'Start Game';
-        function drawRoomElements(ctx, room) {
-            // Draw any room-specific elements here
-            // This could be drawn from sprites defined in gameSprites
-            
-            // For demonstration, we'll draw hotspot indicators in debug modeon.style.border = 'none';
-            if (window.debugMode) {tyle.cursor = 'pointer';
-                room.hotspots.forEach(hotspot => {    nextButton.onclick = () => {
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';               if (index < slides.length - 1) {
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(hotspot.x, hotspot.y, hotspot.width, hotspot.height);                  } else {
-                                            // End intro sequence
-                    // Draw name of the hotspotdy.removeChild(introContainer);
-                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
-                    ctx.font = '10px monospace';
-                    ctx.fillText(hotspot.name, hotspot.x, hotspot.y - 2);
-                });
-            }
+            // Show welcome message
+            showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
         }
         
-        // Monitor network requests to catch any PNG loading attempts
-        function monitorNetworkForPngRequests() {
-            const originalFetch = window.fetch;
-            window.fetch = function(url, options) {
-                if (typeof url === 'string' && url.endsWith('.png')) {ndle skip button
-                    console.error(`PNG fetch attempt blocked: ${url}`);
-                    // Return a promise that resolves to an empty response  document.body.removeChild(introContainer);
-                    return Promise.resolve(new Response('', {    onComplete();
-                        status: 200,
-                        statusText: 'OK'   
-                    }));            // Start with first slide
-                }
-                return originalFetch.apply(this, arguments);
-            };
-            
-            // Also monkey patch XMLHttpRequest
-            const originalOpen = XMLHttpRequest.prototype.open;canvas');
-            XMLHttpRequest.prototype.open = function(method, url) {vas.width = 300;
-                if (typeof url === 'string' && url.endsWith('.png')) {canvas.height = 150;
-                    console.error(`PNG XHR attempt blocked: ${url}`);
-                    // Replace the URL with a data URL   
-                    if (window.gameImages && window.gameImages[url]) {            // Draw logo
-                        arguments[1] = window.gameImages[url];
-                    } else {.height);
-                        // Use a blank data URL
-                        arguments[1] = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                    }
-                }ctx.fillStyle = '#f00';
-                return originalOpen.apply(this, arguments);/2, 60);
-            };
-            ctx.font = 'bold 30px serif';
-            console.log('Network monitoring active - will detect any PNG load attempts');';
-        });
-
-        function setPlayerAction(action) {
-            gameState.playerAction = action;
-            
-            // Update UI to show selected actioncreateCharPortrait() {
-            document.querySelectorAll('.action-button').forEach(btn => {onst canvas = document.createElement('canvas');
-                btn.style.backgroundColor = '#555';   canvas.width = 150;
-            });            canvas.height = 150;
-            ext('2d');
-            document.getElementById(`${action}-btn`).style.backgroundColor = '#a00';
-        }up
-r) {
-        function handleSceneClick(e) {
-            // Get click position relative to scene
-            const rect = e.currentTarget.getBoundingClientRect();indow.gameSprites.playerCharacter.render(ctx, 25, 5, 8);
-            const x = e.clientX - rect.left;   ctx.restore();
-            const y = e.clientY - rect.top;
-                   // Fallback
-            // Check if we clicked on a hotspot                ctx.fillStyle = '#3050FF';
-            const clickedHotspot = findHotspotAt(x, y);
-            
-            if (clickedHotspot) {
-                handleHotspotInteraction(clickedHotspot);}
-            } else {
-                // Move player if in walk mode
-                if (gameState.playerAction === 'walk') {
-                    movePlayer(x, y);
-                }createHotelImage() {
-            }t canvas = document.createElement('canvas');
-        }
-
-        function findHotspotAt(x, y) {
-            const room = rooms[gameState.currentRoom];
-            for (const hotspot of room.hotspots) {l
-                if (x >= hotspot.x && x <= hotspot.x + hotspot.width &&
-                    y >= hotspot.y && y <= hotspot.y + hotspot.height) {00);
-                    return hotspot;
-                }
-            }';
-            return null; y = 0; y < 3; y++) {
-        }
-
-        function handleHotspotInteraction(hotspot) {
-            const action = gameState.playerAction;
-            let actionResult = hotspot.actions[action];
-            
-            if (actionResult) {e = '#642';
-                // If action is a function, execute it
-                if (typeof actionResult === 'function') {
-                    actionResult = actionResult();gn
-                }Style = '#000';
-                
-                if (actionResult.startsWith('exit-to-')) {tx.fillStyle = '#ff0';
-                    // Handle room transition   ctx.font = '14px serif';
-                    const newRoom = actionResult.replace('exit-to-', '');            ctx.textAlign = 'center';
-                    gameState.currentRoom = newRoom;);
-                    updateRoom();
-                } else if (action === 'use' && hotspot.actions.pickup) {
-                    // Add to inventory
-                    addToInventory(hotspot.name);
-                    showMessage(`You picked up the ${hotspot.name}.`);nt system functions
-                    addScore(10);tion initHintSystem() {
-                    
-                    // Remove hotspot from room
-                    const index = rooms[gameState.currentRoom].hotspots.findIndex(h => h.name === hotspot.name);
-                    if (index !== -1) {
-                        rooms[gameState.currentRoom].hotspots.splice(index, 1);
-                        updateRoom();
-                    }inactivityTime: 30000, // Show hint after 30 seconds of inactivity
-                } else {
-                    // Show regular action message
-                    showMessage(actionResult);tart the hint timer
-                }
-            } else {
-                showMessage(`You can't ${action} that.`);eners to reset the timer on user actions
-            }Listener('click', resetHintTimer);
-        };
-d-input').addEventListener('input', resetHintTimer);
-        // New function to handle keyboard movement
-        function handleKeyboardMovement(e) {
-            // Only process arrow keys when no modal is opener() {
-            if (document.getElementById('message-box').style.display === 'block') {t action time
-                return;
-            }
-            ing hint
-            // If player is in walk mode, handle arrow key movement
-            if (gameState.playerAction === 'walk') {
-                const player = document.getElementById('player');ting timer
-                const currentX = parseInt(player.style.left) || window.innerWidth / 2;
-                const currentY = 400 - 30 - 64; // Scene height - bottom margin - player height
-                const moveStep = 10; // Pixels to move per keypress
-                
-                let newX = currentX;
-                let newY = currentY;imer = setTimeout(() => {
-                
-                switch (e.key) {
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        newX = Math.max(0, currentX - moveStep);isting hint elements
-                        e.preventDefault();ctorAll('.game-hint');
-                        break;ingHints.forEach(hint => hint.remove());
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':= null;
-                        newX = Math.min(640 - 32, currentX + moveStep); // Scene width - player width
-                        e.preventDefault();
-                        break;ion showHint() {
-                    case 'ArrowUp':   // Don't show hints if a message is being displayed
-                    case 'w':            if (document.getElementById('message-box').style.display === 'block') {
-                    case 'W':
-                        // Convert to scene coordinate system for movePlayer
-                        movePlayer(currentX, currentY - moveStep);
-                        e.preventDefault();
-                        return;om and game state
-                    case 'ArrowDown':ualHint();
-                    case 's':
-                    case 'S':
-                        // Convert to scene coordinate system for movePlayerment
-                        movePlayer(currentX, currentY + moveStep);    const hintElement = document.createElement('div');
-                        e.preventDefault();e-hint';
-                        return;
-                    default:    hintElement.style.zIndex = '50';
-                        return; // Ignore other keys
-                }
-                
-                // Use existing movePlayer function for left/right movement    if (hint.type === 'hotspot') {
-                if (newX !== currentX) { to a hotspot
-                    movePlayer(newX, 400 - 30);
-                }'text') {
-            }
-        }        positionTextHint(hintElement, hint);
-
-        // Enhanced movePlayer function to handle both click and keyboard movement
-        function movePlayer(x, y) {       document.querySelector('.scene').appendChild(hintElement);
-            const player = document.getElementById('player');                
-            
-            // Ensure player stays within scene boundaries
-            const sceneWidth = 640;t;
-            const sceneHeight = 400;
-            const playerWidth = 32;    // Add a subtle animation
-            const playerHeight = 64;
-            
-            // Constrain to scene boundaries
-            x = Math.max(0, Math.min(sceneWidth - playerWidth, x));
-            resetHintTimer();
-            // For y coordinate, we need to convert between different coordinate systems
-            // When clicking, y is relative to the scene top
-            // When setting player position, the bottom property is relative to scene bottom
-            
-            // Keep player on the "floor" level
-            const floorLevel = 30; // Distance from bottom of scene
-            player.style.left = `${x}px`;
-            player.style.bottom = `${floorLevel}px`; // Keep player at bottom of scenecase 'bar':
-            
-            // Check for hotspot interactions (optional)
-            checkPositionForHotspots(x, sceneHeight - floorLevel - playerHeight);
-        }r',
-           text: 'Try talking to the bartender',
-        // Optional function to check if the player is near any hotspot             action: 'talk'
-        function checkPositionForHotspots(x, y) {            };
-            // Get the center point of the player
-            const playerCenterX = x + 16; // Half player width
-            
-            // Check if player is near any hotspot in the current room               target: 'mysterious-woman',
-            const room = rooms[gameState.currentRoom];                   text: 'The woman might have something for you',
-            let nearestHotspot = null;                            action: 'talk'
-            let shortestDistance = 50; // Minimum detection distance
-            
-            room.hotspots.forEach(hotspot => {            return {
-                // Calculate distance from player to hotspot center
-                const hotspotCenterX = hotspot.x + hotspot.width / 2;
-                const hotspotCenterY = hotspot.y + hotspot.height / 2; leave',
-                
-                // Simple distance calculation (just using X for side-scrolling simplicity)
-                const distance = Math.abs(playerCenterX - hotspotCenterX);
-                
-                // Update nearest hotspot if this one is closer
-                if (distance < shortestDistance) {
-                    shortestDistance = distance;
-                    nearestHotspot = hotspot;
-                }
-            });'s something on the ground',
-            
-            // Optionally, display some subtle hint that the player is near a hotspot};
-            if (nearestHotspot && window.debugMode) {
-                console.log(`Near hotspot: ${nearestHotspot.name}`);       return {
-            }
-        }
-        text: 'The hotel might be worth investigating',
-        function processCommand(command) {
-            command = command.toLowerCase().trim();           };
-                       }
-            if (command === 'look' || command === 'look around') {                    
-                showMessage(rooms[gameState.currentRoom].description);
-            } else if (command.startsWith('look at ')) {
-                const target = command.replace('look at ', '');
-                lookAtObject(target);            target: 'elevator',
-            } else if (command.startsWith('talk to ')) {ake you upstairs',
-                const target = command.replace('talk to ', '');
-                talkToCharacter(target);};
-            } else if (command === 'inventory' || command === 'i') {
-                showInventory();
-            } else if (command.startsWith('use ')) {el-key')) {
-                const parts = command.replace('use ', '').split(' on ');
-                if (parts.length === 2) {    type: 'hotspot',
-                    useItemOn(parts[0], parts[1]);
-                } else {           text: 'You have the key for Room 204',
-                    useItem(parts[0]);               action: 'use'
-                }               };
-            } else if (command === 'help') {                    } else {
-                showMessage("Available commands: look, look at [object], talk to [character], use [item], use [item] on [object], inventory");
-            } else {
-                showMessage("I don't understand that command. Type 'help' for a list of commands.");
-            }            };
-        }
-
-        function lookAtObject(objectName) { 'secret-room':
-            const room = rooms[gameState.currentRoom];
-            const hotspot = room.hotspots.find(h => h.name.toLowerCase() === objectName.toLowerCase());           return {
-                               type: 'hotspot',
-            if (hotspot && hotspot.actions.look) {                            target: 'mysterious-package',
-                showMessage(hotspot.actions.look);hat package looks interesting',
-            } else {
-                // Check inventory
-                const inventoryItem = gameState.inventory.find(i => i.toLowerCase() === objectName.toLowerCase());}
-                if (inventoryItem) {
-                    showMessage(`You examine the ${inventoryItem} carefully.`);
-                } else {   
-                    showMessage(`You don't see a ${objectName} here.`);            // Default hints for each action type
-                } {
-            }
-        }
-
-        function talkToCharacter(characterName) {};
-            const room = rooms[gameState.currentRoom];ate.playerAction === 'talk') {
-            const character = room.hotspots.find(h => h.name.toLowerCase() === characterName.toLowerCase());
-            : 'text', 
-            if (character && character.actions.talk) {
-                showMessage(character.actions.talk);;
-            } else {f (gameState.playerAction === 'use') {
-                showMessage(`You can't talk to ${characterName}.`);
-            }       type: 'text', 
-        }           text: 'Click on objects to interact with them' 
-                };
-        function useItem(itemName) {
-            if (gameState.inventory.includes(itemName)) {
-                showMessage(`You use the ${itemName}, but nothing happens.`);
-            } else {
-                showMessage(`You don't have a ${itemName}.`);
-            }(element, hint) {
-        }
-   const hotspot = rooms[gameState.currentRoom].hotspots.find(h => h.name === hint.target);
-        function useItemOn(itemName, targetName) {            
-            if (gameState.inventory.includes(itemName)) {
-                const room = rooms[gameState.currentRoom];
-                const target = room.hotspots.find(h => h.name.toLowerCase() === targetName.toLowerCase());
-                element.innerHTML = `
-                if (target) {
-                    showMessage(`You try to use the ${itemName} on the ${targetName}, but nothing happens.`);
-                } else {
-                    showMessage(`You don't see a ${targetName} here.`);
-                }
-            } else {t hotspotCenterX = hotspot.x + hotspot.width / 2;
-                showMessage(`You don't have a ${itemName}.`);ght / 2;
-            }
-        }   element.style.left = `${hotspotCenterX}px`;
-            element.style.top = `${hotspotCenterY - 40}px`;
-        function addToInventory(item) {
-            gameState.inventory.push(item);
-            updateInventoryDisplay();ow');
-        }   arrow.style.width = '0';
-            arrow.style.height = '0';
-        function hasItem(itemName) { '10px solid transparent';
-            return gameState.inventory.some(item => item.toLowerCase() === itemName.toLowerCase());
-        }
-arrow.style.margin = '0 auto 5px auto';
-        function updateInventoryDisplay() {
-            const inventoryElement = document.getElementById('inventory');// Style the text
-            inventoryElement.innerHTML = '';or('.hint-text');
-            dColor = 'rgba(0, 0, 0, 0.7)';
-            gameState.inventory.forEach(item => {ext.style.color = '#fff';
-                const itemElement = document.createElement('div');   text.style.padding = '5px 10px';
-                itemElement.className = 'inventory-item';            text.style.borderRadius = '5px';
-                itemElement.textContent = item;'12px';
-                itemElement.addEventListener('click', () => selectInventoryItem(item));
-                
-                inventoryElement.appendChild(itemElement);le.fontFamily = "'Courier New', monospace";
-            });
-        }/ Also highlight the action button that should be used
-   highlightActionButton(hint.action);
-        function selectInventoryItem(item) {        }
-            gameState.selectedItem = item;
-            showMessage(`You selected the ${item}.`);
-        }v>`;
-element.style.left = '50%';
-        function toggleInventory() {
-            const inventoryElement = document.getElementById('inventory');eX(-50%)';
-            const currentDisplay = window.getComputedStyle(inventoryElement).display;   
-                        // Style the text
-            inventoryElement.style.display = currentDisplay === 'none' ? 'flex' : 'none';querySelector('.hint-text');
-            
-            if (currentDisplay === 'none') {   text.style.color = '#fff';
-                showInventory();            text.style.padding = '8px 15px';
-            } = '5px';
-        } '14px';
-text.style.textAlign = 'center';
-        function showInventory() {er New', monospace";
-            if (gameState.inventory.length > 0) {
-                showMessage(`You are carrying: ${gameState.inventory.join(', ')}`);
-            } else {tion animateHint(element, hint) {
-                showMessage("You aren't carrying anything.");
-            }
-        }       element.animate([
-                    { transform: 'translateY(0px)', opacity: 0.9 },
-        function showMessage(message) {ranslateY(-10px)', opacity: 1 },
-            const messageBox = document.getElementById('message-box');slateY(0px)', opacity: 0.9 }
-            const messageText = document.getElementById('message-text');
-                    duration: 2000,
-            messageText.textContent = message;
-            messageBox.style.display = 'block';
-        }
-   // Fade in and out
-        function closeMessage() {       element.animate([
-            document.getElementById('message-box').style.display = 'none';                    { opacity: 0.7 },
-        }
-
-        function updateGameTime() {
-            gameState.gameTime++;
-                       iterations: Infinity
-            // Format time as hours:minutes                });
-            const hours = Math.floor(gameState.gameTime / 60) % 24;
-            const minutes = gameState.gameTime % 60;
-            
-            document.getElementById('game-time').textContent =  function highlightActionButton(action) {
-                `Time: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;     // Temporarily add a glow to the action button
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</html></body>    </script>        window.addEventListener('load', initGame);        // Start the game when page loads        }            // In a full game, we'd handle this with proper Sierra-style restore/restart/quit options            showMessage(`${message} Would you like to RESTORE, RESTART, or QUIT?`);        function playerDeath(message) {        // Sierra-style death function        }            }                showMessage(`You earned your first ${points} points! Keep exploring for more.`);            if (gameState.score === points) {            // Show a message for the first time points are earned                        document.querySelector('.score').textContent = `Score: ${gameState.score} of 500`;            gameState.score += points;        function addScore(points) {        }            const button = document.getElementById(`${action}-btn`);
-            if (button) {
-                // Add a glow effect
-                button.style.boxShadow = '0 0 10px 3px rgba(255, 255, 0, 0.7)';
-                
-                // Remove it after 3 seconds
-                setTimeout(() => {
-                    button.style.boxShadow = '';
-                }, 3000);
-            }
-        }
-
         // Add function to generate player sprite
         function generatePlayerSprite() {
             const playerDiv = document.getElementById('player');
