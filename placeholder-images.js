@@ -688,3 +688,148 @@ window.toggleDebug = function() {
 
 // Initialize with pre-generated sprites to ensure they're ready before needed
 generateGameGraphics();
+
+// Create animated arrow sprite for hint system
+function createArrowSprite(direction = 'down') {
+  const colors = [COLORS.YELLOW, COLORS.WHITE];
+  
+  let grid;
+  
+  switch(direction) {
+    case 'down':
+      grid = [
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT],
+        [COLORS.YELLOW, COLORS.YELLOW, COLORS.YELLOW],
+        [COLORS.YELLOW, COLORS.TRANSPARENT, COLORS.YELLOW]
+      ];
+      break;
+    case 'up':
+      grid = [
+        [COLORS.YELLOW, COLORS.TRANSPARENT, COLORS.YELLOW],
+        [COLORS.YELLOW, COLORS.YELLOW, COLORS.YELLOW],
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT]
+      ];
+      break;
+    case 'left':
+      grid = [
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT],
+        [COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT]
+      ];
+      break;
+    case 'right':
+      grid = [
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT],
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW],
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT]
+      ];
+      break;
+    default:
+      grid = [
+        [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.TRANSPARENT],
+        [COLORS.YELLOW, COLORS.YELLOW, COLORS.YELLOW],
+        [COLORS.YELLOW, COLORS.TRANSPARENT, COLORS.YELLOW]
+      ];
+  }
+  
+  return new PixelSprite(grid);
+}
+
+// Create text balloon for hints
+function createTextBalloon(text, width = 100, height = 40) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  
+  // Draw balloon background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.lineWidth = 2;
+  
+  // Rounded rectangle
+  ctx.beginPath();
+  ctx.roundRect(0, 0, width, height, 5);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Draw text
+  ctx.fillStyle = 'white';
+  ctx.font = '12px Courier New';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Word wrap the text
+  const words = text.split(' ');
+  let line = '';
+  let y = 15;
+  const lineHeight = 14;
+  
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const metrics = ctx.measureText(testLine);
+    
+    if (metrics.width > width - 10 && i > 0) {
+      ctx.fillText(line, width/2, y);
+      line = words[i] + ' ';
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, width/2, y);
+  
+  return canvas;
+}
+
+// Add intro sequence graphics to the sprites
+window.pixelArt.introSequence = {
+  createLogo: function(width = 300, height = 100) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    
+    // Retro Sierra logo style
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw "Sierra" in big red letters
+    ctx.font = 'bold 48px serif';
+    ctx.fillStyle = 'red';
+    ctx.textAlign = 'center';
+    ctx.fillText('SIERRA', width/2, height/2);
+    
+    // Draw "ADVENTURE" below
+    ctx.font = '24px serif';
+    ctx.fillStyle = 'white';
+    ctx.fillText('ADVENTURE', width/2, height/2 + 30);
+    
+    return canvas;
+  },
+  
+  createCharacterPortrait: function() {
+    // Use the existing player character sprite but bigger
+    const sprite = window.gameSprites.playerCharacter;
+    const scale = 8;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = sprite.width * scale;
+    canvas.height = sprite.height * scale;
+    const ctx = canvas.getContext('2d');
+    
+    sprite.render(ctx, 0, 0, scale);
+    return canvas;
+  }
+};
+
+// Initialize hint system visuals
+window.pixelArt.hints = {
+  arrows: {
+    up: createArrowSprite('up'),
+    down: createArrowSprite('down'),
+    left: createArrowSprite('left'),
+    right: createArrowSprite('right')
+  },
+  createBalloon: createTextBalloon
+};
