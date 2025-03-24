@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sierra Adventure</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            width: 640px;
+            height: 480px;
+            position: relative;
+            border: 2px solid #888;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        
+        .scene {
+            width: 100%;
+            height: 400px;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+        
+        .player {
+            width: 32px;
+            height: 64px;
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            background-image: url('player.png');
+            background-size: cover;
+            z-index: 10;
+            transform: translateX(-50%);
+        }
+        
+        .control-panel {
+            width: 100%;
+            height: 80px;
+            background-color: #222;
+            border-top: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .status-bar {
+            height: 20px;
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+        
+        .score {
+            margin-right: auto;
+        }
+        
+        .input-area {
+            display: flex;
+            height: 60px;
+            padding: 0 10px;
+            align-items: center;
+        }
+        
+        .command-input {
+            flex-grow: 1;
+            height: 30px;
+            background-color: #111;
+            border: 1px solid #555;
+            color: #0f0;
+            padding: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .action-buttons {
+            display: flex;
+            background-color: #333;
+            border-radius: 5px;
+            padding: 5px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .action-button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .action-button:hover {
+            background-color: #777;
+        }
+        
+        .inventory {
+            width: 640px;
+            height: 100px;
+            background-color: #222;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 5px;
+            overflow-y: auto;
+        }
+        
+        .inventory-item {
+            width: 50px;
+            height: 50px;
+            background-color: #333;
+            margin: 5px;
+            border: 1px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #222;
+            border: 2px solid #fff;
+            padding: 20px;
+            min-width: 300px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .hotspot {
+            position: absolute;
+            background-color: rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+        
+        .room {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background-size: 100% 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="scene">
+            <div id="current-room" class="room"></div>
+            <div class="player" id="player"></div>
+            <!-- Hotspots will be added here dynamically -->
+        </div>
+        <div class="control-panel">
+            <div class="status-bar">
+                <span class="score">Score: 0 of 500</span>
+                <span class="time" id="game-time"></span>
+            </div>
+            <div class="input-area">
+                <input type="text" class="command-input" id="command-input" placeholder="Enter command...">
+            </div>
+        </div>
+    </div>
+    
+    <div class="action-buttons">
+        <button class="action-button" id="look-btn">Look</button>
+        <button class="action-button" id="talk-btn">Talk</button>
+        <button class="action-button" id="walk-btn">Walk</button>
+        <button class="action-button" id="use-btn">Use</button>
+        <button class="action-button" id="inventory-btn">Inventory</button>
+    </div>
+    
+    <div class="inventory" id="inventory">
+        <!-- Inventory items will be added here dynamically -->
+    </div>
+    
+    <div class="message-box" id="message-box">
+        <p id="message-text"></p>
+        <button id="message-ok">OK</button>
+    </div>
+
+    <!-- Add the placeholder images script before the main game script -->
+    <script src="placeholder-images.js"></script>
+    
+    <script>
+        // Game state
+        const gameState = {
+            currentRoom: 'bar',
+            inventory: [],
+            score: 0,
+            gameTime: 0,
+            playerAction: 'walk', // walk, look, talk, use
+            selectedItem: null,
+            playerName: 'Larry',
+            flags: {
+                talkedToBartender: false,
+                gotHotelKey: false,
+                solvedPuzzle: false
+            }
+        };
+
+        // Rooms data
+        const rooms = {
+            bar: {
+                background: 'bar-background.png',
+                description: "You're in a dimly lit bar called 'The Thirsty Snake'. The air is thick with smoke and the sounds of jazz music.",
+                hotspots: [
+                    {
+                        name: 'bartender',
+                        x: 400, y: 150,
+                        width: 60, height: 100,
+                        description: "A gruff looking bartender wiping glasses clean.",
+                        actions: {
+                            look: "The bartender looks like he's seen it all. He's wearing a stained apron and has a thick mustache.",
+                            talk: function() {
+                                if (!gameState.flags.talkedToBartender) {
+                                    gameState.flags.talkedToBartender = true;
+                                    addScore(5);
+                                    return "\"What'll it be, stranger?\" the bartender asks. \"We've got the usual stuff. Say, you look like someone who might be interested in what's happening at the old hotel downtown. Some strange folks been going in and out of there lately.\"";
+                                } else {
+                                    return "\"Already told you what I know, pal. Check out that hotel if you're curious.\"";
+                                }
+                            },
+                            use: "I don't think you should try to use the bartender."
+                        }
+                    },
+                    {
+                        name: 'door',
+                        x: 50, y: 150,
+                        width: 80, height: 150,
+                        description: "A door leading outside.",
+                        actions: {
+                            look: "It's an old wooden door with peeling paint.",
+                            use: "exit-to-street"
+                        }
+                    },
+                    {
+                        name: 'barstool',
+                        x: 300, y: 250,
+                        width: 50, height: 50,
+                        description: "An empty barstool.",
+                        actions: {
+                            look: "A rickety wooden barstool with a worn leather seat.",
+                            use: "You sit down on the barstool. The bartender glances your way expectantly."
+                        }
+                    },
+                    {
+                        name: 'mysterious-woman',
+                        x: 200, y: 200,
+                        width: 50, height: 100,
+                        description: "A beautiful woman in a red dress sitting alone at a table.",
+                        actions: {
+                            look: "She's gorgeous! Long blonde hair, red dress, and legs that seem to go on forever.",
+                            talk: "You approach with your best smile. \"Hello there, handsome,\" she says with a wink. \"If you're looking for excitement, I hear room 204 at the Starlight Hotel might interest you. But you'll need a key...\" She slides a small hotel key across the table.",
+                            use: "You should probably talk to her first."
+                        }
+                    },
+                    {
+                        name: 'hotel-key',
+                        x: 200, y: 230,
+                        width: 15, height: 10,
+                        description: "A small brass hotel key with '204' engraved on it.",
+                        actions: {
+                            look: "A small brass key with '204' engraved on it. Probably for the Starlight Hotel.",
+                            use: "You should take it first.",
+                            pickup: true
+                        }
+                    }
+                ],
+                exits: {
+                    'street': { x: 50, y: 200 }
+                }
+            },
+            street: {
+                background: 'street-background.png',
+                description: "You're on a busy street with neon signs illuminating the night. The bar is behind you, and you can see a hotel down the street.",
+                hotspots: [
+                    {
+                        name: 'bar-entrance',
+                        x: 400, y: 150,
+                        width: 100, height: 200,
+                        description: "The entrance to the bar.",
+                        actions: {
+                            look: "The bar's entrance has a flickering neon sign that reads 'The Thirsty Snake'.",
+                            use: "exit-to-bar"
+                        }
+                    },
+                    {
+                        name: 'mysterious-person',
+                        x: 150, y: 200,
+                        width: 50, height: 100,
+                        description: "A mysterious person standing in the shadows.",
+                        actions: {
+                            look: "You can't make out their face, but they seem to be watching you.",
+                            talk: "\"Psst... looking for a good time? I might have information you need... for a price.\"",
+                            use: "I don't think they would appreciate that."
+                        }
+                    },
+                    {
+                        name: 'newspaper',
+                        x: 100, y: 350,
+                        width: 30, height: 20,
+                        description: "A crumpled newspaper on the ground.",
+                        actions: {
+                            look: "It's today's newspaper, but it's been stepped on and is partially unreadable.",
+                            use: "You pick up the newspaper and find a circled classified ad for 'The Starlight Hotel - Under New Management'.",
+                            pickup: true
+                        }
+                    },
+                    {
+                        name: 'hotel-entrance',
+                        x: 50, y: 150,
+                        width: 80, height: 150,
+                        description: "The entrance to the Starlight Hotel.",
+                        actions: {
+                            look: "The hotel has a flickering neon sign. It looks a bit run down, but still operational.",
+                            use: "exit-to-hotel-lobby"
+                        }
+                    }
+                ],
+                exits: {
+                    'bar': { x: 400, y: 200 },
+                    'hotel-lobby': { x: 50, y: 200 }
+                }
+            },
+            'hotel-lobby': {
+                background: 'hotel-lobby-background.png',
+                description: "You're in the lobby of the Starlight Hotel. It's seen better days, with worn carpets and dim lighting.",
+                hotspots: [
+                    {
+                        name: 'receptionist',
+                        x: 300, y: 150,
+                        width: 60, height: 100,
+                        description: "A sleepy-looking receptionist behind the counter.",
+                        actions: {
+                            look: "The receptionist looks like he'd rather be anywhere else.",
+                            talk: "\"Welcome to the Starlight Hotel, where dreams come true... or whatever,\" he says with zero enthusiasm. \"Rooms are $60 per night. ID required.\""
+                        }
+                    },
+                    {
+                        name: 'elevator',
+                        x: 200, y: 150,
+                        width: 50, height: 100,
+                        description: "An old elevator with a worn button panel.",
+                        actions: {
+                            look: "The elevator looks operational, but just barely.",
+                            use: "exit-to-hotel-hallway"
+                        }
+                    },
+                    {
+                        name: 'plant',
+                        x: 100, y: 200,
+                        width: 40, height: 80,
+                        description: "A fake plastic plant covered in dust.",
+                        actions: {
+                            look: "It's a dusty fake plant. Looking closer, you notice something glinting in the pot.",
+                            use: "You rummage through the plant's pot and find a quarter! Lucky you."
+                        }
+                    },
+                    {
+                        name: 'exit',
+                        x: 450, y: 150,
+                        width: 80, height: 150,
+                        description: "The exit back to the street.",
+                        actions: {
+                            look: "The door leads back to the street.",
+                            use: "exit-to-street"
+                        }
+                    }
+                ],
+                exits: {
+                    'street': { x: 450, y: 200 },
+                    'hotel-hallway': { x: 200, y: 200 }
+                }
+            },
+            'hotel-hallway': {
+                background: 'hotel-hallway-background.png',
+                description: "You're in a long, dimly lit hallway on the second floor of the hotel. There are several doors along both walls.",
+                hotspots: [
+                    {
+                        name: 'room-204',
+                        x: 300, y: 150,
+                        width: 60, height: 100,
+                        description: "Room 204. There's something special about this room...",
+                        actions: {
+                            look: "The door to Room 204. You can hear faint music coming from inside.",
+                            use: function() {
+                                if (hasItem('hotel-key')) {
+                                    return "exit-to-secret-room";
+                                } else {
+                                    return "The door is locked. You need a key to enter.";
+                                }
+                            }
+                        }
+                    },
+                    {
+                        name: 'elevator',
+                        x: 100, y: 150,
+                        width: 50, height: 100,
+                        description: "The elevator that leads back to the lobby.",
+                        actions: {
+                            look: "The same rickety elevator that brought you here.",
+                            use: "exit-to-hotel-lobby"
+                        }
+                    },
+                    {
+                        name: 'window',
+                        x: 450, y: 100,
+                        width: 80, height: 120,
+                        description: "A window at the end of the hallway.",
+                        actions: {
+                            look: "Looking out the window, you can see the street below. The city never sleeps.",
+                            use: "You try to open the window, but it's painted shut."
+                        }
+                    }
+                ],
+                exits: {
+                    'hotel-lobby': { x: 100, y: 200 },
+                    'secret-room': { x: 300, y: 200 }
+                }
+            },
+            'secret-room': {
+                background: 'secret-room-background.png',
+                description: "You've entered Room 204. To your surprise, it's actually a secret casino operation!",
+                hotspots: [
+                    {
+                        name: 'dealer',
+                        x: 300, y: 150,
+                        width: 60, height: 100,
+                        description: "A card dealer in a fancy suit.",
+                        actions: {
+                            look: "The dealer has slick hair and an even slicker smile.",
+                            talk: "\"Welcome to our exclusive establishment,\" the dealer says. \"Care to try your luck? The password for tonight is 'Sierra'.\""
+                        }
+                    },
+                    {
+                        name: 'card-table',
+                        x: 200, y: 250,
+                        width: 100, height: 50,
+                        description: "A green felt card table with poker chips stacked neatly.",
+                        actions: {
+                            look: "A professional card table. High stakes games are played here.",
+                            use: "You don't have enough money to join the game right now."
+                        }
+                    },
+                    {
+                        name: 'mysterious-package',
+                        x: 400, y: 300,
+                        width: 50, height: 30,
+                        description: "A mysterious package left unattended.",
+                        actions: {
+                            look: "A small brown package wrapped in paper. No one seems to be watching it.",
+                            use: "You quickly grab the package when no one is looking!",
+                            pickup: true
+                        }
+                    },
+                    {
+                        name: 'exit',
+                        x: 100, y: 150,
+                        width: 50, height: 100,
+                        description: "The exit back to the hallway.",
+                        actions: {
+                            look: "The door leading back to the hotel hallway.",
+                            use: "exit-to-hotel-hallway"
+                        }
+                    }
+                ],
+                exits: {
+                    'hotel-hallway': { x: 100, y: 200 }
+                }
+            }
+        };
+
+        // Game initialization
+        function initGame() {
+            updateRoom();
+            setInterval(updateGameTime, 1000);
+            
+            // Event listeners
+            document.getElementById('command-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    processCommand(this.value);
+                    this.value = '';
+                }
+            });
+            
+            document.getElementById('look-btn').addEventListener('click', () => setPlayerAction('look'));
+            document.getElementById('talk-btn').addEventListener('click', () => setPlayerAction('talk'));
+            document.getElementById('walk-btn').addEventListener('click', () => setPlayerAction('walk'));
+            document.getElementById('use-btn').addEventListener('click', () => setPlayerAction('use'));
+            document.getElementById('inventory-btn').addEventListener('click', toggleInventory);
+            
+            document.getElementById('message-ok').addEventListener('click', closeMessage);
+            
+            // Click handler for the scene
+            document.querySelector('.scene').addEventListener('click', handleSceneClick);
+            
+            // Start with walk as the default action
+            setPlayerAction('walk');
+            
+            // Show welcome message
+            showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
+        }
+
+        function updateRoom() {
+            const room = rooms[gameState.currentRoom];
+            const roomElement = document.getElementById('current-room');
+            
+            // Set room background
+            roomElement.style.backgroundImage = `url('${room.background}')`;
+            
+            // Clear existing hotspots
+            const existingHotspots = document.querySelectorAll('.hotspot');
+            existingHotspots.forEach(h => h.remove());
+            
+            // Add new hotspots
+            room.hotspots.forEach(hotspot => {
+                const hotspotElement = document.createElement('div');
+                hotspotElement.className = 'hotspot';
+                hotspotElement.dataset.name = hotspot.name;
+                hotspotElement.style.left = `${hotspot.x}px`;
+                hotspotElement.style.top = `${hotspot.y}px`;
+                hotspotElement.style.width = `${hotspot.width}px`;
+                hotspotElement.style.height = `${hotspot.height}px`;
+                
+                document.querySelector('.scene').appendChild(hotspotElement);
+            });
+            
+            // Show room description
+            showMessage(room.description);
+        }
+
+        function setPlayerAction(action) {
+            gameState.playerAction = action;
+            
+            // Update UI to show selected action
+            document.querySelectorAll('.action-button').forEach(btn => {
+                btn.style.backgroundColor = '#555';
+            });
+            
+            document.getElementById(`${action}-btn`).style.backgroundColor = '#a00';
+        }
+
+        function handleSceneClick(e) {
+            // Get click position relative to scene
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if we clicked on a hotspot
+            const clickedHotspot = findHotspotAt(x, y);
+            
+            if (clickedHotspot) {
+                handleHotspotInteraction(clickedHotspot);
+            } else {
+                // Move player if in walk mode
+                if (gameState.playerAction === 'walk') {
+                    movePlayer(x, y);
+                }
+            }
+        }
+
+        function findHotspotAt(x, y) {
+            const room = rooms[gameState.currentRoom];
+            for (const hotspot of room.hotspots) {
+                if (x >= hotspot.x && x <= hotspot.x + hotspot.width &&
+                    y >= hotspot.y && y <= hotspot.y + hotspot.height) {
+                    return hotspot;
+                }
+            }
+            return null;
+        }
+
+        function handleHotspotInteraction(hotspot) {
+            const action = gameState.playerAction;
+            let actionResult = hotspot.actions[action];
+            
+            if (actionResult) {
+                // If action is a function, execute it
+                if (typeof actionResult === 'function') {
+                    actionResult = actionResult();
+                }
+                
+                if (actionResult.startsWith('exit-to-')) {
+                    // Handle room transition
+                    const newRoom = actionResult.replace('exit-to-', '');
+                    gameState.currentRoom = newRoom;
+                    updateRoom();
+                } else if (action === 'use' && hotspot.actions.pickup) {
+                    // Add to inventory
+                    addToInventory(hotspot.name);
+                    showMessage(`You picked up the ${hotspot.name}.`);
+                    addScore(10);
+                    
+                    // Remove hotspot from room
+                    const index = rooms[gameState.currentRoom].hotspots.findIndex(h => h.name === hotspot.name);
+                    if (index !== -1) {
+                        rooms[gameState.currentRoom].hotspots.splice(index, 1);
+                        updateRoom();
+                    }
+                } else {
+                    // Show regular action message
+                    showMessage(actionResult);
+                }
+            } else {
+                showMessage(`You can't ${action} that.`);
+            }
+        }
+
+        function movePlayer(x, y) {
+            const player = document.getElementById('player');
+            player.style.left = `${x}px`;
+            player.style.bottom = '30px'; // Keep player at bottom of scene
+        }
+
+        function processCommand(command) {
+            command = command.toLowerCase().trim();
+            
+            if (command === 'look' || command === 'look around') {
+                showMessage(rooms[gameState.currentRoom].description);
+            } else if (command.startsWith('look at ')) {
+                const target = command.replace('look at ', '');
+                lookAtObject(target);
+            } else if (command.startsWith('talk to ')) {
+                const target = command.replace('talk to ', '');
+                talkToCharacter(target);
+            } else if (command === 'inventory' || command === 'i') {
+                showInventory();
+            } else if (command.startsWith('use ')) {
+                const parts = command.replace('use ', '').split(' on ');
+                if (parts.length === 2) {
+                    useItemOn(parts[0], parts[1]);
+                } else {
+                    useItem(parts[0]);
+                }
+            } else if (command === 'help') {
+                showMessage("Available commands: look, look at [object], talk to [character], use [item], use [item] on [object], inventory");
+            } else {
+                showMessage("I don't understand that command. Type 'help' for a list of commands.");
+            }
+        }
+
+        function lookAtObject(objectName) {
+            const room = rooms[gameState.currentRoom];
+            const hotspot = room.hotspots.find(h => h.name.toLowerCase() === objectName.toLowerCase());
+            
+            if (hotspot && hotspot.actions.look) {
+                showMessage(hotspot.actions.look);
+            } else {
+                // Check inventory
+                const inventoryItem = gameState.inventory.find(i => i.toLowerCase() === objectName.toLowerCase());
+                if (inventoryItem) {
+                    showMessage(`You examine the ${inventoryItem} carefully.`);
+                } else {
+                    showMessage(`You don't see a ${objectName} here.`);
+                }
+            }
+        }
+
+        function talkToCharacter(characterName) {
+            const room = rooms[gameState.currentRoom];
+            const character = room.hotspots.find(h => h.name.toLowerCase() === characterName.toLowerCase());
+            
+            if (character && character.actions.talk) {
+                showMessage(character.actions.talk);
+            } else {
+                showMessage(`You can't talk to ${characterName}.`);
+            }
+        }
+
+        function useItem(itemName) {
+            if (gameState.inventory.includes(itemName)) {
+                showMessage(`You use the ${itemName}, but nothing happens.`);
+            } else {
+                showMessage(`You don't have a ${itemName}.`);
+            }
+        }
+
+        function useItemOn(itemName, targetName) {
+            if (gameState.inventory.includes(itemName)) {
+                const room = rooms[gameState.currentRoom];
+                const target = room.hotspots.find(h => h.name.toLowerCase() === targetName.toLowerCase());
+                
+                if (target) {
+                    showMessage(`You try to use the ${itemName} on the ${targetName}, but nothing happens.`);
+                } else {
+                    showMessage(`You don't see a ${targetName} here.`);
+                }
+            } else {
+                showMessage(`You don't have a ${itemName}.`);
+            }
+        }
+
+        function addToInventory(item) {
+            gameState.inventory.push(item);
+            updateInventoryDisplay();
+        }
+
+        function hasItem(itemName) {
+            return gameState.inventory.some(item => item.toLowerCase() === itemName.toLowerCase());
+        }
+
+        function updateInventoryDisplay() {
+            const inventoryElement = document.getElementById('inventory');
+            inventoryElement.innerHTML = '';
+            
+            gameState.inventory.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.textContent = item;
+                itemElement.addEventListener('click', () => selectInventoryItem(item));
+                
+                inventoryElement.appendChild(itemElement);
+            });
+        }
+
+        function selectInventoryItem(item) {
+            gameState.selectedItem = item;
+            showMessage(`You selected the ${item}.`);
+        }
+
+        function toggleInventory() {
+            const inventoryElement = document.getElementById('inventory');
+            const currentDisplay = window.getComputedStyle(inventoryElement).display;
+            
+            inventoryElement.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+            
+            if (currentDisplay === 'none') {
+                showInventory();
+            }
+        }
+
+        function showInventory() {
+            if (gameState.inventory.length > 0) {
+                showMessage(`You are carrying: ${gameState.inventory.join(', ')}`);
+            } else {
+                showMessage("You aren't carrying anything.");
+            }
+        }
+
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            
+            messageText.textContent = message;
+            messageBox.style.display = 'block';
+        }
+
+        function closeMessage() {
+            document.getElementById('message-box').style.display = 'none';
+        }
+
+        function updateGameTime() {
+            gameState.gameTime++;
+            
+            // Format time as hours:minutes
+            const hours = Math.floor(gameState.gameTime / 60) % 24;
+            const minutes = gameState.gameTime % 60;
+            
+            document.getElementById('game-time').textContent = 
+                `Time: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        function addScore(points) {
+            gameState.score += points;
+            document.querySelector('.score').textContent = `Score: ${gameState.score} of 500`;
+            
+            // Show a message for the first time points are earned
+            if (gameState.score === points) {
+                showMessage(`You earned your first ${points} points! Keep exploring for more.`);
+            }
+        }
+
+        // Sierra-style death function
+        function playerDeath(message) {
+            showMessage(`${message} Would you like to RESTORE, RESTART, or QUIT?`);
+            // In a full game, we'd handle this with proper Sierra-style restore/restart/quit options
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
