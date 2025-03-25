@@ -22,3 +22,19 @@ export const liquorBottle = new PixelSprite([
     [COLORS.GREEN, COLORS.DARK_GREEN, COLORS.GREEN],
     [COLORS.GREEN, COLORS.GREEN, COLORS.GREEN]
 ]);
+
+// Add a renderWithShadow method to each sprite
+barCounter.renderWithShadow = function(ctx, x, y, scale) {
+    this.render(ctx, x + 2, y + 2, scale, COLORS.DARK_GRAY); // Shadow
+    this.render(ctx, x, y, scale); // Original sprite
+};
+
+neonSign.renderWithShadow = function(ctx, x, y, scale) {
+    this.render(ctx, x + 2, y + 2, scale, COLORS.DARK_GRAY); // Shadow
+    this.render(ctx, x, y, scale); // Original sprite
+};
+
+liquorBottle.renderWithShadow = function(ctx, x, y, scale) {
+    this.render(ctx, x + 2, y + 2, scale, COLORS.DARK_GRAY); // Shadow
+    this.render(ctx, x, y, scale); // Original sprite
+};
