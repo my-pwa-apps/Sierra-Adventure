@@ -252,7 +252,7 @@
         });
     </script>
     <script>
-        // Fix player movement to prevent resetting to the middle
+        // Update player movement logic to prevent resetting to the middle
         window.addEventListener('load', function () {
             if (window.SierraAdventure) {
                 const originalMovePlayer = window.SierraAdventure.movePlayer;
@@ -275,6 +275,22 @@
                 };
             }
         });
+
+        // Add placeholder for detailed environments and objects
+        const scene = document.querySelector('.scene');
+        scene.style.backgroundImage = "url('./assets/backgrounds/detailed-scene.png')"; // Example background
+        scene.style.backgroundSize = 'cover';
+
+        // Add placeholder objects
+        const object1 = document.createElement('div');
+        object1.className = 'hotspot';
+        object1.style.width = '50px';
+        object1.style.height = '50px';
+        object1.style.left = '100px';
+        object1.style.bottom = '30px';
+        object1.style.backgroundImage = "url('./assets/objects/object1.png')"; // Example object
+        object1.style.backgroundSize = 'contain';
+        scene.appendChild(object1);
     </script>
 </body>
 </html>
