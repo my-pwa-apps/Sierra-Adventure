@@ -135,6 +135,29 @@ class SceneManager {
 // Create singleton instance
 const sceneManager = new SceneManager();
 
+// Add dynamic scene registration for new objects and backgrounds
+sceneManager.registerDynamicScenes = function() {
+    console.log('Registering dynamic scenes');
+
+    // Example: Register a forest scene
+    this.registerScene('forest', {
+        background: 'forestScene',
+        description: 'A dense forest with towering trees.',
+        elements: [
+            { type: 'treasureChest', x: 100, y: 200, scale: 4 }
+        ]
+    });
+
+    console.log('Dynamic scenes registered');
+};
+
+// Call the dynamic scene registration during initialization
+sceneManager.init = function() {
+    console.log('Initializing Scene Manager');
+    this.registerDynamicScenes();
+    // ...existing code...
+};
+
 // Export as default
 export default sceneManager;
 

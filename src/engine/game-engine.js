@@ -3,8 +3,35 @@ import { PixelSprite } from '../graphics/PixelSprite.js';
 import { barCounter, neonSign, liquorBottle } from '../graphics/EnvironmentSprites.js';
 
 const GameEngine = {
+    generateDynamicContent() {
+        console.log('Generating dynamic content for objects and backgrounds');
+
+        // Example: Generate a forest scene
+        const forestScene = SpriteEngine.createPixelSprite([
+            [COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN],
+            [COLORS.DARK_GREEN, COLORS.BROWN, COLORS.DARK_GREEN],
+            [COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN]
+        ]);
+        SpriteEngine.registerSprite('forestScene', forestScene);
+
+        // Example: Generate a treasure chest object
+        const treasureChest = SpriteEngine.createPixelSprite([
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.YELLOW, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN]
+        ]);
+        SpriteEngine.registerSprite('treasureChest', treasureChest);
+
+        // Add these to the gameImages for compatibility
+        window.gameImages['forestScene'] = forestScene.toDataURL(4);
+        window.gameImages['treasureChest'] = treasureChest.toDataURL(4);
+
+        console.log('Dynamic content generation complete');
+    },
+
     init() {
         console.log('Initializing Enhanced Sierra Adventure Game Engine');
+        this.generateDynamicContent();
         
         // Initialize global objects
         window.gameSprites = window.gameSprites || {};
