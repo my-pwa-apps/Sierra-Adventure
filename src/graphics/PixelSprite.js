@@ -1,5 +1,5 @@
 /**
- * JavaScript implementation of PixelSprite class
+ * JavaScript implementation of the PixelSprite class
  */
 export class PixelSprite {
   constructor(grid) {
@@ -73,5 +73,5 @@ export class PixelSprite {
   }
 }
 
-// Make available globally for compatibility
+// Make available globally for compatibility with non-module code
 window.PixelSprite = PixelSprite;

@@ -49,6 +49,6 @@ export const ColorUtils = {
   }
 };
 
-// Make available globally for compatibility
+// Make available globally for compatibility with existing code
 window.COLORS = COLORS;
 window.ColorUtils = ColorUtils;
