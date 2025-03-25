@@ -82,8 +82,44 @@ const GameEngine = {
             window.SierraAdventure = {
                 init: function() {
                     console.log('SierraAdventure initialized successfully.');
+                    
+                    // Create player character
+                    this.createPlayerCharacter();
+                    
                     // Setup UI handlers, hotspots, etc.
                     this.setupUI();
+                    
+                    // Enable debug mode for development
+                    window.debugMode = true;
+                    
+                    // Enable showing NPC names
+                    window.showNames = true;
+                },
+                
+                createPlayerCharacter: function() {
+                    // Create player DOM element if it doesn't exist
+                    if (!document.getElementById('player')) {
+                        const playerElement = document.createElement('div');
+                        playerElement.id = 'player';
+                        playerElement.className = 'player';
+                        
+                        const scene = document.querySelector('.scene');
+                        if (scene) {
+                            scene.appendChild(playerElement);
+                            console.log('Player character added to scene');
+                        }
+                    }
+                    
+                    // Store reference to the player element
+                    this.domElements = this.domElements || {};
+                    this.domElements.player = document.getElementById('player');
+                    this.domElements.scene = document.querySelector('.scene');
+                    
+                    // Position player at starting position
+                    if (this.domElements.player) {
+                        this.domElements.player.style.left = '300px';
+                        this.domElements.player.style.bottom = '60px';
+                    }
                 },
                 
                 setupUI: function() {
@@ -113,9 +149,26 @@ const GameEngine = {
                     }
                 },
                 
-                domElements: {
-                    player: document.getElementById('player'),
-                    scene: document.querySelector('.scene')
+                movePlayer: function(x, y) {
+                    const player = this.domElements.player;
+                    if (!player) return;
+                    
+                    // Update player position, but keep on screen
+                    const sceneWidth = 640;
+                    const playerWidth = 32;
+                    const constrainedX = Math.max(0, Math.min(sceneWidth - playerWidth, x));
+                    player.style.left = `${constrainedX}px`;
+                    
+                    // Keep player on the floor
+                    player.style.bottom = '60px';
+                    
+                    // Redraw scene to show player in new position
+                    if (window.RoomRenderer) {
+                        window.RoomRenderer.renderScene(this.currentScene);
+                    }
+                    
+                    // Check for hotspot interactions
+                    this.checkPositionForHotspots(x, y);
                 },
                 
                 checkPositionForHotspots: function(x, y) {
