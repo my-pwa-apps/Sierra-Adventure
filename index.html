@@ -40,12 +40,11 @@
             width: 32px;
             height: 64px;
             position: absolute;
-            bottom: 30px;
-            left: 50%;
-            background-color: transparent; /* We'll draw the player with code */
-            background-size: cover;
-            z-index: 10;
-            transform: translateX(-50%);
+            bottom: 60px;  /* Position higher above the ground */
+            left: 300px;   /* Start in middle of screen */
+            z-index: 100;  /* Ensure character appears on top */
+            image-rendering: pixelated;
+            pointer-events: none; /* Allow clicking through player */
         }
         
         .control-panel {

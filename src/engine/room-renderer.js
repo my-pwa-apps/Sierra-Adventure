@@ -174,28 +174,29 @@ const RoomRenderer = {
     drawNPCs(scene) {
         if (!scene || !scene.npcs) return;
         
-        console.log('Drawing NPCs:', scene.npcs.length);
-        
         // Draw each NPC
         scene.npcs.forEach(npc => {
             const sprite = SpriteEngine.getSprite(npc.type);
             if (!sprite) {
-                console.warn(`Sprite not found for NPC type: ${npc.type}`);
-                // Draw a placeholder rectangle for the NPC
+                // Fallback when sprite not found
                 this.ctx.fillStyle = '#FF0000';
                 this.ctx.fillRect(npc.x, npc.y, 20, 40);
                 return;
             }
             
-            // Draw the NPC at their position
+            // Draw the NPC with proper scaling
             const scale = npc.scale || 4;
             sprite.render(this.ctx, npc.x, npc.y, scale);
             
-            // Draw NPC name
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = '12px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(npc.name || 'NPC', npc.x + 16, npc.y - 5);
+            // Draw name with better visibility
+            if (npc.name || window.showNames) {
+                this.ctx.fillStyle = '#000000'; // Text shadow
+                this.ctx.font = 'bold 12px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(npc.name || 'NPC', npc.x + 16, npc.y - 6);
+                this.ctx.fillStyle = '#FFFFFF'; // Text
+                this.ctx.fillText(npc.name || 'NPC', npc.x + 16, npc.y - 5);
+            }
         });
     },
     
@@ -205,29 +206,28 @@ const RoomRenderer = {
     drawPlayer() {
         // Get player element
         const player = window.SierraAdventure?.domElements?.player;
-        if (!player) {
-            console.warn('Player element not found');
-            return;
-        }
+        if (!player) return;
         
-        // Get player position from style
+        // Get player position
         const left = parseInt(player.style.left) || 300;
-        
-        // Draw player character with static y position
         const playerY = this.canvas.height - 120;
         
-        console.log('Drawing player at:', left, playerY);
-        
-        // Get player sprite
+        // Draw player with highlight
         const playerSprite = SpriteEngine.getSprite('playerCharacter');
         if (playerSprite) {
             playerSprite.render(this.ctx, left, playerY, 4);
+            
+            // Highlight player
+            this.ctx.strokeStyle = '#FFFF00';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(left - 2, playerY - 2, 36, 36);
         } else {
-            // Fallback if sprite not loaded
+            // Fallback
             this.ctx.fillStyle = '#FF0000';
-            this.ctx.fillRect(left, playerY, 20, 40);
+            this.ctx.fillRect(left, playerY, 32, 32);
             this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.fillText('Player', left + 10, playerY - 5);
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('You', left + 16, playerY - 5);
         }
     },
     
