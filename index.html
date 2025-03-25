@@ -252,6 +252,60 @@
         });
     </script>
     <script>
+        // Dynamically generate environment backgrounds and objects with pixel art aesthetics
+        window.addEventListener('load', function () {
+            if (window.SierraAdventure) {
+                const scene = document.querySelector('.scene');
+
+                // Generate pixel-art style background
+                const backgroundCanvas = document.createElement('canvas');
+                backgroundCanvas.width = 640;
+                backgroundCanvas.height = 400;
+                const bgContext = backgroundCanvas.getContext('2d');
+
+                // Draw a simple pixel-art background
+                bgContext.fillStyle = '#87CEEB'; // Sky blue
+                bgContext.fillRect(0, 0, 640, 200); // Sky
+                bgContext.fillStyle = '#228B22'; // Forest green
+                bgContext.fillRect(0, 200, 640, 200); // Ground
+
+                // Add some pixelated trees
+                for (let i = 0; i < 5; i++) {
+                    const x = Math.random() * 600;
+                    bgContext.fillStyle = '#8B4513'; // Tree trunk
+                    bgContext.fillRect(x + 10, 250, 10, 50);
+                    bgContext.fillStyle = '#006400'; // Tree foliage
+                    bgContext.beginPath();
+                    bgContext.moveTo(x, 250);
+                    bgContext.lineTo(x + 30, 250);
+                    bgContext.lineTo(x + 15, 220);
+                    bgContext.closePath();
+                    bgContext.fill();
+                }
+
+                scene.style.backgroundImage = `url(${backgroundCanvas.toDataURL()})`;
+
+                // Generate pixel-art style objects
+                const createObject = (x, y, color) => {
+                    const object = document.createElement('div');
+                    object.className = 'hotspot';
+                    object.style.width = '32px';
+                    object.style.height = '32px';
+                    object.style.left = `${x}px`;
+                    object.style.bottom = `${y}px`;
+                    object.style.backgroundColor = color;
+                    object.style.border = '1px solid #000';
+                    object.style.imageRendering = 'pixelated';
+                    scene.appendChild(object);
+                };
+
+                // Add some objects
+                createObject(100, 30, '#FFD700'); // Gold object
+                createObject(300, 30, '#8B0000'); // Red object
+                createObject(500, 30, '#1E90FF'); // Blue object
+            }
+        });
+
         // Update player movement logic to prevent resetting to the middle
         window.addEventListener('load', function () {
             if (window.SierraAdventure) {
@@ -275,22 +329,6 @@
                 };
             }
         });
-
-        // Add placeholder for detailed environments and objects
-        const scene = document.querySelector('.scene');
-        scene.style.backgroundImage = "url('./assets/backgrounds/detailed-scene.png')"; // Example background
-        scene.style.backgroundSize = 'cover';
-
-        // Add placeholder objects
-        const object1 = document.createElement('div');
-        object1.className = 'hotspot';
-        object1.style.width = '50px';
-        object1.style.height = '50px';
-        object1.style.left = '100px';
-        object1.style.bottom = '30px';
-        object1.style.backgroundImage = "url('./assets/objects/object1.png')"; // Example object
-        object1.style.backgroundSize = 'contain';
-        scene.appendChild(object1);
     </script>
 </body>
 </html>
