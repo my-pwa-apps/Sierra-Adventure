@@ -103,16 +103,16 @@ const SpriteEngine = {
         // Generate character sprites
         this.generateCharacterSprites();
         
-        // Generate object sprites
-        this.generateObjectSprites();
+        // Generate classic Sierra-style objects
+        this.generateSierraObjectSprites();
         
-        // Generate scene backgrounds
-        this.generateSceneBackgrounds();
+        // Generate Sierra-style scene backgrounds
+        this.generateSierraSceneBackgrounds();
         
         // Convert sprites to data URLs
         this.convertSpritesToDataURLs();
         
-        console.log('All sprites generated successfully');
+        console.log('All Sierra-style sprites generated successfully');
     },
     
     /**
@@ -153,17 +153,419 @@ const SpriteEngine = {
     },
     
     /**
-     * Generate object sprites
+     * Generate Sierra-style object sprites
      */
-    generateObjectSprites() {
-        // Add more object sprites here...
+    generateSierraObjectSprites() {
+        console.log('Generating Sierra-style object sprites');
+        
+        // Sierra-style desk - chunky pixels, limited palette
+        const desk = new PixelSprite([
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.BROWN]
+        ]);
+        this.registerSprite('desk', desk);
+        
+        // Sierra-style chair
+        const chair = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+            [COLORS.DARK_BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_BROWN]
+        ]);
+        this.registerSprite('chair', chair);
+        
+        // Sierra-style door
+        const door = new PixelSprite([
+            [COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.YELLOW, COLORS.BROWN, COLORS.DARK_BROWN], // Door knob
+            [COLORS.DARK_BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN]
+        ]);
+        this.registerSprite('door', door);
+        
+        // Sierra-style window
+        const window = new PixelSprite([
+            [COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.LIGHT_BLUE, COLORS.LIGHT_BLUE, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.LIGHT_BLUE, COLORS.LIGHT_BLUE, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN]
+        ]);
+        this.registerSprite('window', window);
+        
+        // Sierra-style table
+        const table = new PixelSprite([
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
+            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
+            [COLORS.DARK_BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_BROWN]
+        ]);
+        this.registerSprite('table', table);
+        
+        // Sierra-style key (inventory item)
+        const key = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
+            [COLORS.YELLOW, COLORS.YELLOW, COLORS.YELLOW, COLORS.YELLOW],
+            [COLORS.YELLOW, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.YELLOW]
+        ]);
+        this.registerSprite('key', key);
+        
+        // Sierra-style notepad/paper
+        const paper = new PixelSprite([
+            [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE],
+            [COLORS.WHITE, COLORS.BLACK, COLORS.BLACK, COLORS.WHITE],
+            [COLORS.WHITE, COLORS.BLACK, COLORS.BLACK, COLORS.WHITE],
+            [COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE]
+        ]);
+        this.registerSprite('paper', paper);
+        
+        // Sierra-style plant/tree
+        const tree = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.TRANSPARENT],
+            [COLORS.DARK_GREEN, COLORS.GREEN, COLORS.GREEN, COLORS.DARK_GREEN],
+            [COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.BROWN, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.BROWN, COLORS.TRANSPARENT]
+        ]);
+        this.registerSprite('tree', tree);
     },
     
     /**
-     * Generate scene backgrounds
+     * Generate Sierra-style scene backgrounds
      */
-    generateSceneBackgrounds() {
-        // Add scene background generation here...
+    generateSierraSceneBackgrounds() {
+        console.log('Generating Sierra-style scene backgrounds');
+        
+        this.generateBarScene();
+        this.generateStreetScene();
+        this.generateForestScene();
+        this.generateOfficeScene();
+        this.generateHotelLobbyScene();
+    },
+    
+    /**
+     * Generate a bar scene background in Sierra style
+     */
+    generateBarScene() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        // Background wall (Sierra games often used dark, warm colors for indoor scenes)
+        ctx.fillStyle = '#442211';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Floor (darker wood color)
+        ctx.fillStyle = '#221100';
+        ctx.fillRect(0, 300, canvas.width, 100);
+        
+        // Add subtle floor pattern (Sierra-style wood grain)
+        for (let x = 0; x < canvas.width; x += 20) {
+            ctx.fillStyle = '#331100';
+            ctx.fillRect(x, 300, 10, 100);
+        }
+        
+        // Bar counter on right side
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(400, 240, 200, 60);
+        ctx.fillStyle = '#A05000';
+        ctx.fillRect(400, 240, 200, 10); // Counter edge highlight
+        
+        // Shelves with bottles behind bar
+        ctx.fillStyle = '#5C3317';
+        ctx.fillRect(400, 100, 200, 80);
+        
+        // Bottles (various colors typical of Sierra games)
+        for (let i = 0; i < 10; i++) {
+            const bottleX = 420 + i * 18;
+            ctx.fillStyle = ['#00FF00', '#0000FF', '#FF0000', '#FFFF00'][i % 4];
+            ctx.fillRect(bottleX, 110, 10, 25);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(bottleX + 3, 120, 4, 10); // Bottle highlight
+        }
+        
+        // Tables with chairs
+        for (let i = 0; i < 3; i++) {
+            const tableX = 80 + i * 100;
+            // Table
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(tableX, 260, 60, 40);
+            
+            // Chairs
+            ctx.fillStyle = '#A05000';
+            ctx.fillRect(tableX - 20, 270, 20, 20);
+            ctx.fillRect(tableX + 60, 270, 20, 20);
+        }
+        
+        // Add a typical Sierra neon sign
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(50, 50, 80, 40);
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#FF00FF'; // Classic magenta neon
+        ctx.fillText('BAR', 65, 75);
+        
+        // Store the scene
+        window.gameImages['bar-background'] = canvas.toDataURL();
+        window.gameImages['bar-background.png'] = canvas.toDataURL();
+    },
+    
+    /**
+     * Generate a street scene background in Sierra style
+     */
+    generateStreetScene() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        // Sky (Sierra games typically had simple gradient skies)
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, canvas.width, 200);
+        
+        // Add simple clouds
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(100, 50, 60, 20);
+        ctx.fillRect(120, 40, 30, 30);
+        ctx.fillRect(400, 70, 80, 30);
+        ctx.fillRect(420, 60, 40, 40);
+        
+        // Street/ground
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(0, 200, canvas.width, 200);
+        
+        // Building on left (Sierra games used basic colored rectangles for buildings)
+        ctx.fillStyle = '#AA0000'; // Red building
+        ctx.fillRect(0, 50, 200, 150);
+        
+        // Windows (typically blue rectangles)
+        for (let y = 0; y < 3; y++) {
+            for (let x = 0; x < 5; x++) {
+                ctx.fillStyle = '#87CEFA';
+                ctx.fillRect(20 + x * 35, 70 + y * 40, 20, 30);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect(20 + x * 35, 70 + y * 40, 20, 30);
+            }
+        }
+        
+        // Building on right
+        ctx.fillStyle = '#007700'; // Green building
+        ctx.fillRect(440, 80, 200, 120);
+        
+        // Store sign (typical text-based sign)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(480, 100, 120, 40);
+        ctx.font = '18px Arial';
+        ctx.fillStyle = '#000000';
+        ctx.fillText('STORE', 510, 125);
+        
+        // Door
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(520, 150, 40, 50);
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(530, 175, 5, 5); // Doorknob
+        
+        // Store the scene
+        window.gameImages['street-background'] = canvas.toDataURL();
+        window.gameImages['street-background.png'] = canvas.toDataURL();
+    },
+    
+    /**
+     * Generate a forest scene background in Sierra style
+     */
+    generateForestScene() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        // Sky
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, canvas.width, 200);
+        
+        // Ground
+        ctx.fillStyle = '#355E3B'; // Forest green
+        ctx.fillRect(0, 200, canvas.width, 200);
+        
+        // Path through forest (Sierra games often had clear paths)
+        ctx.fillStyle = '#8B4513'; // Brown dirt path
+        ctx.beginPath();
+        ctx.moveTo(0, 350);
+        ctx.bezierCurveTo(200, 300, 400, 380, 640, 320);
+        ctx.lineTo(640, 400);
+        ctx.lineTo(0, 400);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw multiple trees (Sierra forests had many simple tree sprites)
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * canvas.width;
+            const y = 180 + Math.random() * 70;
+            
+            // Tree trunk
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x - 5, y, 10, 50);
+            
+            // Tree foliage (triangular, like Sierra games often used)
+            ctx.fillStyle = '#006400';
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y);
+            ctx.lineTo(x + 20, y);
+            ctx.lineTo(x, y - 40);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Add some rocks (Sierra games often had simple gray rocks)
+        for (let i = 0; i < 10; i++) {
+            const x = Math.random() * canvas.width;
+            const y = 300 + Math.random() * 70;
+            ctx.fillStyle = '#808080';
+            ctx.beginPath();
+            ctx.arc(x, y, 5 + Math.random() * 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Store the scene
+        window.gameImages['forest-background'] = canvas.toDataURL();
+        window.gameImages['forest-background.png'] = canvas.toDataURL();
+    },
+    
+    /**
+     * Generate an office scene background in Sierra style
+     */
+    generateOfficeScene() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        // Wall
+        ctx.fillStyle = '#FFFFCC'; // Typical light wall color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Floor
+        ctx.fillStyle = '#8B4513'; // Brown wooden floor
+        ctx.fillRect(0, 300, canvas.width, 100);
+        
+        // Floor pattern (Sierra-style wood grain)
+        for (let x = 0; x < canvas.width; x += 40) {
+            ctx.fillStyle = '#A05000';
+            ctx.fillRect(x, 300, 20, 100);
+        }
+        
+        // Office desk
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(200, 260, 240, 40);
+        ctx.fillStyle = '#A05000';
+        ctx.fillRect(200, 260, 240, 5); // Desk edge highlight
+        
+        // Computer
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(280, 230, 80, 30);
+        ctx.fillStyle = '#87CEFA';
+        ctx.fillRect(290, 235, 60, 20); // Screen
+        ctx.fillStyle = '#CCCCCC';
+        ctx.fillRect(300, 270, 40, 15); // Keyboard
+        
+        // Office chair
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(310, 300, 40, 50);
+        
+        // Filing cabinet
+        for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(50, 220 + i * 40, 70, 40);
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(60, 230 + i * 40, 50, 5); // Drawer handle
+        }
+        
+        // Window
+        ctx.fillStyle = '#87CEFA';
+        ctx.fillRect(450, 50, 150, 100);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(450, 50, 150, 100);
+        
+        // Window dividers
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(450, 100);
+        ctx.lineTo(600, 100);
+        ctx.moveTo(525, 50);
+        ctx.lineTo(525, 150);
+        ctx.stroke();
+        
+        // Store the scene
+        window.gameImages['office-background'] = canvas.toDataURL();
+        window.gameImages['office-background.png'] = canvas.toDataURL();
+    },
+    
+    /**
+     * Generate a hotel lobby scene background in Sierra style
+     */
+    generateHotelLobbyScene() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        // Wall
+        ctx.fillStyle = '#E6D2B5'; // Beige wall
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Floor
+        ctx.fillStyle = '#A0522D';
+        ctx.fillRect(0, 300, canvas.width, 100);
+        
+        // Carpet
+        ctx.fillStyle = '#9B2D30'; // Red carpet
+        ctx.fillRect(100, 300, 440, 100);
+        
+        // Carpet pattern
+        ctx.fillStyle = '#7B0D10';
+        for (let x = 120; x < 520; x += 40) {
+            for (let y = 320; y < 380; y += 40) {
+                ctx.fillRect(x, y, 20, 20);
+            }
+        }
+        
+        // Reception desk
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(400, 240, 200, 60);
+        ctx.fillStyle = '#A05000';
+        ctx.fillRect(400, 240, 200, 10); // Desk edge
+        
+        // Bell
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(500, 230, 10, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Room doors
+        for (let i = 0; i < 3; i++) {
+            const doorX = 100 + i * 100;
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(doorX, 150, 60, 150);
+            
+            // Door numbers
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(doorX + 25, 170, 10, 15);
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.fillText((i + 1).toString(), doorX + 27, 182);
+        }
+        
+        // Store the scene
+        window.gameImages['hotel-lobby-background'] = canvas.toDataURL();
+        window.gameImages['hotel-lobby-background.png'] = canvas.toDataURL();
     },
     
     /**
@@ -179,18 +581,27 @@ const SpriteEngine = {
         
         // Add backwards compatibility for older code that uses PNG names
         window.gameImages['player.png'] = window.gameImages.playerCharacter || '';
-        window.gameImages['bar-background.png'] = window.gameImages.barBackground || '';
-        window.gameImages['street-background.png'] = window.gameImages.streetBackground || '';
-        window.gameImages['hotel-lobby-background.png'] = window.gameImages.hotelLobbyBackground || '';
-        window.gameImages['hotel-hallway-background.png'] = window.gameImages.hotelHallwayBackground || '';
-        window.gameImages['secret-room-background.png'] = window.gameImages.secretRoomBackground || '';
-    },
-    
-    /**
-     * Helper function to adjust color brightness
-     */
-    adjustColor(color, amount) {
-        return ColorUtils.adjustBrightness(color, amount);
+        
+        // Sierra-style game often had both versions accessible
+        const sceneTypes = [
+            'bar-background', 
+            'street-background', 
+            'forest-background',
+            'office-background',
+            'hotel-lobby-background'
+        ];
+        
+        // Ensure our Sierra-style backgrounds are registered in both formats
+        sceneTypes.forEach(scene => {
+            if (window.gameImages[scene + '.png']) {
+                window.gameImages[scene] = window.gameImages[scene + '.png'];
+            }
+            if (window.gameImages[scene]) {
+                window.gameImages[scene + '.png'] = window.gameImages[scene];
+            }
+        });
+        
+        console.log('Sierra-style sprites and scenes converted successfully');
     }
 };
 
