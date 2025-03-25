@@ -1,10 +1,11 @@
 /**
  * Room Renderer for Sierra Adventure
- * Handles rendering scenes to the canvas with Sierra-style aesthetics
+ * Handles rendering scenes to the canvas with Sierra-style 3D perspective
  */
 
 import SpriteEngine from './sprite-engine.js';
 import sceneManager from './scene-manager.js';
+import PerspectiveRenderer from './PerspectiveRenderer.js';
 import { COLORS } from '../common/color-palette.js';
 
 const RoomRenderer = {
@@ -26,11 +27,14 @@ const RoomRenderer = {
         
         this.ctx = this.canvas.getContext('2d');
         
+        // Initialize the 3D perspective renderer
+        PerspectiveRenderer.init(this);
+        
         // Handle window resize
         window.addEventListener('resize', () => this.resizeCanvas());
         this.resizeCanvas();
         
-        console.log('Room renderer initialized');
+        console.log('Sierra 3D Room renderer initialized');
         return this;
     },
     
@@ -81,7 +85,7 @@ const RoomRenderer = {
     },
     
     /**
-     * Render a scene object
+     * Render a scene object with Sierra-style 3D perspective
      * @param {object} scene - Scene object to render
      */
     renderScene(scene) {
@@ -90,13 +94,13 @@ const RoomRenderer = {
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw the background
-        this.drawBackground(scene);
+        // Use perspective renderer for room background and 3D elements
+        PerspectiveRenderer.drawRoom(scene);
         
-        // Draw the elements (furniture, objects, etc.)
+        // Draw the elements (furniture, objects, etc.) with proper perspective
         this.drawElements(scene);
         
-        // Draw NPCs
+        // Draw NPCs with depth ordering
         this.drawNPCs(scene);
         
         // Draw player character
@@ -109,73 +113,34 @@ const RoomRenderer = {
     },
     
     /**
-     * Draw the scene background
-     * @param {object} scene - Scene to draw background for
-     */
-    drawBackground(scene) {
-        // Use the background image if available
-        if (scene.background && window.gameImages[scene.background]) {
-            const img = new Image();
-            img.src = window.gameImages[scene.background];
-            
-            // Draw the image when loaded
-            if (img.complete) {
-                this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-            } else {
-                img.onload = () => {
-                    this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-                };
-            }
-        } else {
-            // Fall back to a simple colored background
-            this.ctx.fillStyle = scene.baseColor || COLORS.DARK_BLUE;
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Add a floor
-            const floorHeight = this.canvas.height * 0.2;
-            this.ctx.fillStyle = COLORS.DARK_BROWN;
-            this.ctx.fillRect(0, this.canvas.height - floorHeight, this.canvas.width, floorHeight);
-        }
-    },
-    
-    /**
-     * Draw all elements in the scene
+     * Draw all elements in the scene with proper 3D perspective
      * @param {object} scene - Scene to draw elements for
      */
     drawElements(scene) {
         if (!scene.elements) return;
         
-        // Draw each element
-        scene.elements.forEach(element => {
-            this.drawElement(element);
+        // Sort elements by Y position for proper Sierra-style depth
+        const sortedElements = [...scene.elements].sort((a, b) => a.y - b.y);
+        
+        // Draw each element with proper 3D perspective
+        sortedElements.forEach(element => {
+            // Use perspective renderer for 3D objects
+            PerspectiveRenderer.drawElement(element);
         });
     },
     
     /**
-     * Draw a single scene element
-     * @param {object} element - Element to draw
-     */
-    drawElement(element) {
-        const sprite = SpriteEngine.getSprite(element.type);
-        if (!sprite) {
-            console.warn(`Sprite not found for element type: ${element.type}`);
-            return;
-        }
-        
-        // Draw the sprite at the element position with Sierra-style pixel scaling
-        const scale = element.scale || 4; // Sierra games used chunky pixels
-        sprite.render(this.ctx, element.x, element.y, scale);
-    },
-    
-    /**
-     * Draw all NPCs in the scene
+     * Draw all NPCs in the scene with proper 3D perspective
      * @param {object} scene - Scene to draw NPCs for
      */
     drawNPCs(scene) {
         if (!scene || !scene.npcs) return;
         
-        // Draw each NPC
-        scene.npcs.forEach(npc => {
+        // Sort NPCs by Y position for proper Sierra-style depth
+        const sortedNPCs = [...scene.npcs].sort((a, b) => a.y - b.y);
+        
+        // Draw each NPC with proper scaling based on distance from camera
+        sortedNPCs.forEach(npc => {
             const sprite = SpriteEngine.getSprite(npc.type);
             if (!sprite) {
                 // Fallback when sprite not found
@@ -184,9 +149,12 @@ const RoomRenderer = {
                 return;
             }
             
+            // Calculate perspective scale based on Y position (distance from viewer)
+            const baseScale = npc.scale || 4;
+            const perspectiveScale = PerspectiveRenderer.getScaleFromY(npc.y, baseScale);
+            
             // Draw the NPC with proper scaling
-            const scale = npc.scale || 4;
-            sprite.render(this.ctx, npc.x, npc.y, scale);
+            sprite.render(this.ctx, npc.x, npc.y, perspectiveScale);
             
             // Draw name with better visibility
             if (npc.name || window.showNames) {
@@ -197,11 +165,18 @@ const RoomRenderer = {
                 this.ctx.fillStyle = '#FFFFFF'; // Text
                 this.ctx.fillText(npc.name || 'NPC', npc.x + 16, npc.y - 5);
             }
+            
+            // Draw shadow for NPCs (typical in Sierra games)
+            if (npc.castShadow !== false) {
+                this.ctx.globalAlpha = 0.3;
+                sprite.render(this.ctx, npc.x + 5, npc.y + 2, perspectiveScale * 0.8, COLORS.BLACK);
+                this.ctx.globalAlpha = 1.0;
+            }
         });
     },
     
     /**
-     * Draw the player character
+     * Draw the player character with proper 3D perspective
      */
     drawPlayer() {
         // Get player data
@@ -211,6 +186,10 @@ const RoomRenderer = {
         // Get player position
         const x = playerState.x;
         const y = this.canvas.height - 100;
+        
+        // Calculate perspective scale based on Y position
+        const baseScale = 4; // Default size
+        const perspectiveScale = PerspectiveRenderer.getScaleFromY(y, baseScale);
         
         // Select the appropriate sprite based on direction
         let playerSprite;
@@ -228,9 +207,14 @@ const RoomRenderer = {
                 playerSprite = SpriteEngine.getSprite('playerCharacter');
             }
             
-            // Draw at position with walk animation offset
+            // Draw at position with walk animation offset and proper perspective
             if (playerSprite) {
-                playerSprite.render(this.ctx, x, y - walkOffset, 4);
+                playerSprite.render(this.ctx, x, y - walkOffset, perspectiveScale);
+                
+                // Draw shadow (typical in Sierra games)
+                this.ctx.globalAlpha = 0.3;
+                playerSprite.render(this.ctx, x + 4, y + 2, perspectiveScale * 0.8, COLORS.BLACK);
+                this.ctx.globalAlpha = 1.0;
             }
         } else {
             // Standing still
@@ -244,9 +228,14 @@ const RoomRenderer = {
                 playerSprite = SpriteEngine.getSprite('playerCharacter');
             }
             
-            // Draw at position
+            // Draw at position with proper perspective
             if (playerSprite) {
-                playerSprite.render(this.ctx, x, y, 4);
+                playerSprite.render(this.ctx, x, y, perspectiveScale);
+                
+                // Draw shadow (typical in Sierra games)
+                this.ctx.globalAlpha = 0.3;
+                playerSprite.render(this.ctx, x + 4, y + 2, perspectiveScale * 0.8, COLORS.BLACK);
+                this.ctx.globalAlpha = 1.0;
             }
         }
         
