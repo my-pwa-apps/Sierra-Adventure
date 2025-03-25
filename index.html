@@ -233,101 +233,26 @@
     <!-- First, load the placeholder-images.js for backward compatibility -->
     <script src="placeholder-images.js"></script>
     
-    <!-- Load essential modules -->
+    <!-- Load the room-renderer.js -->
     <script type="module">
-        import { COLORS, ColorUtils } from './src/common/color-palette.js';
-        import { PixelSprite } from './src/graphics/PixelSprite.js';
+        import RoomRenderer from './src/engine/room-renderer.js';
         import GameEngine from './src/engine/game-engine.js';
-
-        // Make globally available
-        window.COLORS = COLORS;
-        window.ColorUtils = ColorUtils;
-        window.PixelSprite = PixelSprite;
-        window.GameEngine = GameEngine;
-
-        // Initialize the game engine when the document is loaded
+        
+        // Initialize the game when document is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Modules loaded, initializing game...');
+            console.log('Initializing Sierra Adventure Game...');
+            
+            // Initialize the game engine
             GameEngine.init();
-        });
-    </script>
-    <script>
-        // Dynamically generate environment backgrounds and objects with pixel art aesthetics
-        window.addEventListener('load', function () {
-            if (window.SierraAdventure) {
-                const scene = document.querySelector('.scene');
-
-                // Generate pixel-art style background
-                const backgroundCanvas = document.createElement('canvas');
-                backgroundCanvas.width = 640;
-                backgroundCanvas.height = 400;
-                const bgContext = backgroundCanvas.getContext('2d');
-
-                // Draw a simple pixel-art background
-                bgContext.fillStyle = '#87CEEB'; // Sky blue
-                bgContext.fillRect(0, 0, 640, 200); // Sky
-                bgContext.fillStyle = '#228B22'; // Forest green
-                bgContext.fillRect(0, 200, 640, 200); // Ground
-
-                // Add some pixelated trees
-                for (let i = 0; i < 5; i++) {
-                    const x = Math.random() * 600;
-                    bgContext.fillStyle = '#8B4513'; // Tree trunk
-                    bgContext.fillRect(x + 10, 250, 10, 50);
-                    bgContext.fillStyle = '#006400'; // Tree foliage
-                    bgContext.beginPath();
-                    bgContext.moveTo(x, 250);
-                    bgContext.lineTo(x + 30, 250);
-                    bgContext.lineTo(x + 15, 220);
-                    bgContext.closePath();
-                    bgContext.fill();
-                }
-
-                scene.style.backgroundImage = `url(${backgroundCanvas.toDataURL()})`;
-
-                // Generate pixel-art style objects
-                const createObject = (x, y, color) => {
-                    const object = document.createElement('div');
-                    object.className = 'hotspot';
-                    object.style.width = '32px';
-                    object.style.height = '32px';
-                    object.style.left = `${x}px`;
-                    object.style.bottom = `${y}px`;
-                    object.style.backgroundColor = color;
-                    object.style.border = '1px solid #000';
-                    object.style.imageRendering = 'pixelated';
-                    scene.appendChild(object);
-                };
-
-                // Add some objects
-                createObject(100, 30, '#FFD700'); // Gold object
-                createObject(300, 30, '#8B0000'); // Red object
-                createObject(500, 30, '#1E90FF'); // Blue object
-            }
-        });
-
-        // Update player movement logic to prevent resetting to the middle
-        window.addEventListener('load', function () {
-            if (window.SierraAdventure) {
-                const originalMovePlayer = window.SierraAdventure.movePlayer;
-                window.SierraAdventure.movePlayer = function (x, y) {
-                    const player = this.domElements.player;
-                    if (!player) return;
-
-                    // Constrain player to scene boundaries
-                    const sceneWidth = 640;
-                    const playerWidth = 32;
-                    x = Math.max(0, Math.min(sceneWidth - playerWidth, x));
-
-                    // Update player position
-                    player.style.left = `${x}px`;
-                    player.style.bottom = '30px'; // Keep player on the floor
-                    player.style.transform = 'none'; // Prevent centering
-
-                    // Check for hotspot interactions
-                    this.checkPositionForHotspots(x, y);
-                };
-            }
+            
+            // Initialize the room renderer
+            const canvas = document.getElementById('room-canvas');
+            RoomRenderer.init(canvas);
+            
+            // Render the initial scene (typically the bar in Sierra games)
+            setTimeout(() => {
+                RoomRenderer.renderRoom('bar');
+            }, 500); // Short delay to ensure all sprites are generated
         });
     </script>
 </body>

@@ -1,4 +1,5 @@
 import SpriteEngine from './sprite-engine.js';
+import sceneManager from './scene-manager.js';
 import { COLORS } from '../common/color-palette.js';
 import { PixelSprite } from '../graphics/PixelSprite.js';
 import { barCounter, neonSign, liquorBottle } from '../graphics/EnvironmentSprites.js';
@@ -64,6 +65,11 @@ const GameEngine = {
         
         // Initialize the sprite engine for Sierra-style graphics
         SpriteEngine.init();
+        
+        // Initialize scene manager
+        if (sceneManager && typeof sceneManager.init === 'function') {
+            sceneManager.init();
+        }
         
         // Generate additional content
         this.generateDynamicContent();
@@ -132,13 +138,14 @@ const GameEngine = {
      * Register all scenes with the scene manager
      */
     registerScenes() {
-        if (!window.sceneManager) {
+        // Use the imported sceneManager instead of window.sceneManager
+        if (!sceneManager) {
             console.error('Scene manager not available');
             return;
         }
         
         // Register the bar scene
-        window.sceneManager.registerScene('bar', {
+        sceneManager.registerScene('bar', {
             background: 'bar-background',
             description: 'A dimly lit bar with several tables and a long counter.',
             elements: [
@@ -163,7 +170,7 @@ const GameEngine = {
         });
         
         // Register the street scene
-        window.sceneManager.registerScene('street', {
+        sceneManager.registerScene('street', {
             background: 'street-background',
             description: 'A city street with buildings on either side.',
             elements: [
@@ -180,7 +187,7 @@ const GameEngine = {
         });
         
         // Register the forest scene
-        window.sceneManager.registerScene('forest', {
+        sceneManager.registerScene('forest', {
             background: 'forest-background',
             description: 'A dense forest with a path winding through it.',
             elements: [
@@ -198,7 +205,7 @@ const GameEngine = {
         });
         
         // Register the office scene
-        window.sceneManager.registerScene('office', {
+        sceneManager.registerScene('office', {
             background: 'office-background',
             description: 'A small office with a desk and filing cabinets.',
             elements: [
@@ -222,7 +229,7 @@ const GameEngine = {
         });
         
         // Register the hotel lobby scene
-        window.sceneManager.registerScene('hotel-lobby', {
+        sceneManager.registerScene('hotel-lobby', {
             background: 'hotel-lobby-background',
             description: 'The lobby of a small hotel with a reception desk.',
             elements: [
