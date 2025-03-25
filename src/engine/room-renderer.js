@@ -204,30 +204,56 @@ const RoomRenderer = {
      * Draw the player character
      */
     drawPlayer() {
-        // Get player element
-        const player = window.SierraAdventure?.domElements?.player;
-        if (!player) return;
+        // Get player data
+        const playerState = window.SierraAdventure?.player;
+        if (!playerState) return;
         
         // Get player position
-        const left = parseInt(player.style.left) || 300;
-        const playerY = this.canvas.height - 120;
+        const x = playerState.x;
+        const y = this.canvas.height - 100;
         
-        // Draw player with highlight
-        const playerSprite = SpriteEngine.getSprite('playerCharacter');
-        if (playerSprite) {
-            playerSprite.render(this.ctx, left, playerY, 4);
+        // Select the appropriate sprite based on direction
+        let playerSprite;
+        if (playerState.isWalking) {
+            // Use walking frame to animate
+            const walkOffset = (playerState.walkFrame % 2) * 2; // Slight position offset for animation
             
-            // Highlight player
-            this.ctx.strokeStyle = '#FFFF00';
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(left - 2, playerY - 2, 36, 36);
+            if (playerState.direction === 'left') {
+                playerSprite = SpriteEngine.getSprite('playerLeft');
+            } else if (playerState.direction === 'right') {
+                playerSprite = SpriteEngine.getSprite('playerRight');
+            } else if (playerState.direction === 'back') {
+                playerSprite = SpriteEngine.getSprite('playerBack');
+            } else {
+                playerSprite = SpriteEngine.getSprite('playerCharacter');
+            }
+            
+            // Draw at position with walk animation offset
+            if (playerSprite) {
+                playerSprite.render(this.ctx, x, y - walkOffset, 4);
+            }
         } else {
-            // Fallback
+            // Standing still
+            if (playerState.direction === 'left') {
+                playerSprite = SpriteEngine.getSprite('playerLeft');
+            } else if (playerState.direction === 'right') {
+                playerSprite = SpriteEngine.getSprite('playerRight');
+            } else if (playerState.direction === 'back') {
+                playerSprite = SpriteEngine.getSprite('playerBack');
+            } else {
+                playerSprite = SpriteEngine.getSprite('playerCharacter');
+            }
+            
+            // Draw at position
+            if (playerSprite) {
+                playerSprite.render(this.ctx, x, y, 4);
+            }
+        }
+        
+        // Fallback if sprite not found
+        if (!playerSprite) {
             this.ctx.fillStyle = '#FF0000';
-            this.ctx.fillRect(left, playerY, 32, 32);
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('You', left + 16, playerY - 5);
+            this.ctx.fillRect(x, y - 32, 32, 32);
         }
     },
     

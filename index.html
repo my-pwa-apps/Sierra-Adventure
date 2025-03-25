@@ -241,17 +241,35 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Initializing Sierra Adventure Game...');
             
+            // Create canvas in the scene div
+            const sceneDiv = document.querySelector('.scene');
+            const canvas = document.createElement('canvas');
+            canvas.id = 'room-canvas';
+            canvas.className = 'room-canvas';
+            canvas.width = 640;
+            canvas.height = 400;
+            sceneDiv.appendChild(canvas);
+            
             // Initialize the game engine
             GameEngine.init();
             
-            // Initialize the room renderer
-            const canvas = document.getElementById('room-canvas');
+            // Initialize the room renderer with the canvas
             RoomRenderer.init(canvas);
             
-            // Render the initial scene (typically the bar in Sierra games)
-            setTimeout(() => {
-                RoomRenderer.renderRoom('bar');
-            }, 500); // Short delay to ensure all sprites are generated
+            // Force immediate rendering of the bar scene
+            RoomRenderer.renderRoom('bar');
+            
+            // Setup character movement on click
+            sceneDiv.addEventListener('click', (e) => {
+                const rect = sceneDiv.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                if (window.SierraAdventure && window.SierraAdventure.movePlayer) {
+                    window.SierraAdventure.movePlayer(x, 0);
+                    
+                    // Re-render the scene to update character position
+                    RoomRenderer.renderScene(sceneManager.getScene('bar'));
+                }
+            });
         });
     </script>
 </body>

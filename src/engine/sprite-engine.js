@@ -119,37 +119,73 @@ const SpriteEngine = {
      * Generate character sprites
      */
     generateCharacterSprites() {
-        // Player character
-        const playerCharacter = new PixelSprite([
-            [COLORS.TRANSPARENT, COLORS.HAIR_BROWN, COLORS.HAIR_BROWN, COLORS.TRANSPARENT],
-            [COLORS.HAIR_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.HAIR_BROWN],
-            [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
-            [COLORS.TRANSPARENT, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.TRANSPARENT],
-            [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
-            [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
-            [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT],
-            [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT]
-        ]);
-        
-        this.registerSprite('playerCharacter', playerCharacter);
-        window.gameSprites.playerCharacter = playerCharacter;
+        // Import player sprite functions
+        import('../graphics/PlayerSprite.js').then(module => {
+            const { playerFront, playerLeft, playerRight, playerBack } = module.createPlayerSprites();
+            
+            // Register all player sprites
+            this.registerSprite('playerCharacter', playerFront);
+            this.registerSprite('playerLeft', playerLeft);
+            this.registerSprite('playerRight', playerRight);
+            this.registerSprite('playerBack', playerBack);
+            
+            window.gameSprites.playerCharacter = playerFront;
+            window.gameSprites.playerLeft = playerLeft;
+            window.gameSprites.playerRight = playerRight;
+            window.gameSprites.playerBack = playerBack;
+            
+            // Trigger render update if needed
+            if (window.RoomRenderer && window.SierraAdventure?.currentScene) {
+                window.RoomRenderer.renderScene(window.sceneManager.getScene(window.SierraAdventure.currentScene));
+            }
+        }).catch(err => {
+            console.error('Failed to load player sprites:', err);
+            
+            // Fallback simple player character
+            const playerCharacter = new PixelSprite([
+                [COLORS.TRANSPARENT, COLORS.HAIR_BROWN, COLORS.HAIR_BROWN, COLORS.TRANSPARENT],
+                [COLORS.HAIR_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.HAIR_BROWN],
+                [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+                [COLORS.TRANSPARENT, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.TRANSPARENT],
+                [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
+                [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
+                [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT],
+                [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT]
+            ]);
+            
+            this.registerSprite('playerCharacter', playerCharacter);
+            window.gameSprites.playerCharacter = playerCharacter;
+        });
         
         // Bartender sprite
         const bartender = new PixelSprite([
             [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
             [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN],
             [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN], // With mustache
-            [COLORS.TRANSPARENT, COLORS.METAL, COLORS.METAL, COLORS.TRANSPARENT], // Apron
-            [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
-            [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
-            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
-            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.WHITE, COLORS.WHITE, COLORS.TRANSPARENT], // White shirt
+            [COLORS.BLACK, COLORS.WHITE, COLORS.WHITE, COLORS.BLACK], // With black vest
+            [COLORS.BLACK, COLORS.BLACK, COLORS.BLACK, COLORS.BLACK],
+            [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
         ]);
         
         this.registerSprite('bartender', bartender);
         window.gameSprites.bartender = bartender;
         
-        // More character sprites here...
+        // Bar patron sprite
+        const barPatron = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
+            [COLORS.YELLOW, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.YELLOW],
+            [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
+            [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+            [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+            [COLORS.TRANSPARENT, COLORS.DARK_BLUE, COLORS.DARK_BLUE, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.DARK_BLUE, COLORS.DARK_BLUE, COLORS.TRANSPARENT],
+        ]);
+        
+        this.registerSprite('barPatron', barPatron);
+        window.gameSprites.barPatron = barPatron;
     },
     
     /**

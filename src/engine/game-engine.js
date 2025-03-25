@@ -94,6 +94,16 @@ const GameEngine = {
                     
                     // Enable showing NPC names
                     window.showNames = true;
+                    
+                    // Set initial scene
+                    this.currentScene = 'bar';
+                    
+                    // Preload all scenes to avoid brown screen
+                    setTimeout(() => {
+                        if (window.RoomRenderer) {
+                            window.RoomRenderer.renderRoom('bar');
+                        }
+                    }, 200);
                 },
                 
                 createPlayerCharacter: function() {
@@ -115,11 +125,44 @@ const GameEngine = {
                     this.domElements.player = document.getElementById('player');
                     this.domElements.scene = document.querySelector('.scene');
                     
+                    // Player state
+                    this.player = {
+                        x: 300,
+                        y: 60,
+                        direction: 'right', // right, left, front, back
+                        isWalking: false,
+                        walkFrame: 0,
+                        walkSpeed: 3,
+                        updateInterval: null
+                    };
+                    
                     // Position player at starting position
                     if (this.domElements.player) {
-                        this.domElements.player.style.left = '300px';
-                        this.domElements.player.style.bottom = '60px';
+                        this.domElements.player.style.left = `${this.player.x}px`;
+                        this.domElements.player.style.bottom = `${this.player.y}px`;
                     }
+                    
+                    // Start animation loop
+                    this.startAnimationLoop();
+                },
+                
+                // Start animation loop for the player character
+                startAnimationLoop: function() {
+                    if (this.player.updateInterval) {
+                        clearInterval(this.player.updateInterval);
+                    }
+                    
+                    this.player.updateInterval = setInterval(() => {
+                        if (this.player.isWalking) {
+                            // Update walk animation frame
+                            this.player.walkFrame = (this.player.walkFrame + 1) % 4;
+                            
+                            // Redraw scene to show animation
+                            if (window.RoomRenderer && this.currentScene) {
+                                window.RoomRenderer.renderScene(window.sceneManager.getScene(this.currentScene));
+                            }
+                        }
+                    }, 200); // Sierra games had slower frame rates
                 },
                 
                 setupUI: function() {
@@ -150,25 +193,58 @@ const GameEngine = {
                 },
                 
                 movePlayer: function(x, y) {
-                    const player = this.domElements.player;
+                    const player = this.player;
                     if (!player) return;
                     
-                    // Update player position, but keep on screen
-                    const sceneWidth = 640;
-                    const playerWidth = 32;
-                    const constrainedX = Math.max(0, Math.min(sceneWidth - playerWidth, x));
-                    player.style.left = `${constrainedX}px`;
+                    // Set walking state
+                    player.isWalking = true;
                     
-                    // Keep player on the floor
-                    player.style.bottom = '60px';
-                    
-                    // Redraw scene to show player in new position
-                    if (window.RoomRenderer) {
-                        window.RoomRenderer.renderScene(this.currentScene);
+                    // Determine direction based on target position
+                    if (x < player.x) {
+                        player.direction = 'left';
+                    } else if (x > player.x) {
+                        player.direction = 'right';
                     }
                     
-                    // Check for hotspot interactions
-                    this.checkPositionForHotspots(x, y);
+                    // Calculate path to destination
+                    const startX = player.x;
+                    const distance = Math.abs(x - startX);
+                    const direction = x > startX ? 1 : -1;
+                    let step = 0;
+                    
+                    // Clear any existing movement
+                    if (this.moveInterval) clearInterval(this.moveInterval);
+                    
+                    // Smooth walking animation
+                    this.moveInterval = setInterval(() => {
+                        step++;
+                        if (step >= distance) {
+                            clearInterval(this.moveInterval);
+                            player.isWalking = false;
+                            
+                            // Final position
+                            player.x = x;
+                        } else {
+                            // Increment position
+                            player.x += direction * player.walkSpeed;
+                        }
+                        
+                        // Update DOM element
+                        const domPlayer = this.domElements.player;
+                        if (domPlayer) {
+                            domPlayer.style.left = `${player.x}px`;
+                            domPlayer.style.bottom = `${player.y}px`;
+                        }
+                        
+                        // Redraw scene with updated position
+                        if (window.RoomRenderer && this.currentScene) {
+                            window.RoomRenderer.renderScene(window.sceneManager.getScene(this.currentScene));
+                        }
+                        
+                        // Check for hotspot interactions
+                        this.checkPositionForHotspots(player.x, player.y);
+                        
+                    }, 50); // 20 fps movement
                 },
                 
                 checkPositionForHotspots: function(x, y) {
