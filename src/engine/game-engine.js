@@ -41,12 +41,12 @@ const GameEngine = {
         // Generate detailed scenes
         this.generateDetailedScenes();
         
-        // Initialize SierraAdventure
-        if (typeof window.SierraAdventure.init === 'function') {
+        // Ensure SierraAdventure and its init method are defined before calling
+        if (window.SierraAdventure && typeof window.SierraAdventure.init === 'function') {
             console.log('Starting game initialization');
             window.SierraAdventure.init();
         } else {
-            console.error('SierraAdventure.init not available!');
+            console.error('SierraAdventure.init is not available or not a function!');
         }
     },
 
