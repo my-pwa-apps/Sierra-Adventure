@@ -3,7 +3,7 @@
  * Generates all game graphics procedurally without loading external images
  */
 
-import { COLORS } from '../common/color-palette.js';
+import { COLORS, ColorUtils } from '../common/color-palette.js';
 import { PixelSprite } from '../graphics/PixelSprite.js';
 import * as EnvironmentSprites from '../graphics/EnvironmentSprites.js';
 
@@ -43,10 +43,18 @@ const SpriteEngine = {
     },
     
     /**
+     * Create a PixelSprite from a grid
+     * @param {string[][]} grid Color grid
+     * @returns {PixelSprite} New sprite
+     */
+    createPixelSprite(grid) {
+        return new PixelSprite(grid);
+    },
+    
+    /**
      * Monitor network requests to prevent external image loading
      */
     monitorNetworkRequests() {
-        // Same implementation as monitorNetworkForPngRequests, but renamed
         const originalFetch = window.fetch;
         window.fetch = function(url, options) {
             if (typeof url === 'string' && (url.endsWith('.png') || url.endsWith('.jpg'))) {
@@ -73,23 +81,25 @@ const SpriteEngine = {
             return originalOpen.apply(this, arguments);
         };
         
-        // Also handle Image constructor
-        this.monitorImageElement();
-        
         console.log('Network request monitoring active');
-    },
-    
-    /**
-     * Monitor Image element creation to intercept src assignments
-     */
-    monitorImageElement() {
-        // ... existing code from placeholder-images.js ...
     },
     
     /**
      * Generate all game sprites
      */
     generateSprites() {
+        // Create global container for all sprites
+        window.gameSprites = window.gameSprites || {};
+        window.gameImages = window.gameImages || {};
+        
+        // Import environment sprites
+        Object.entries(EnvironmentSprites).forEach(([name, sprite]) => {
+            if (sprite instanceof PixelSprite) {
+                this.registerSprite(name, sprite);
+                window.gameSprites[name] = sprite;
+            }
+        });
+        
         // Generate character sprites
         this.generateCharacterSprites();
         
@@ -105,19 +115,87 @@ const SpriteEngine = {
         console.log('All sprites generated successfully');
     },
     
-    // ... existing sprite generation methods ...
-
+    /**
+     * Generate character sprites
+     */
+    generateCharacterSprites() {
+        // Player character
+        const playerCharacter = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.HAIR_BROWN, COLORS.HAIR_BROWN, COLORS.TRANSPARENT],
+            [COLORS.HAIR_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.HAIR_BROWN],
+            [COLORS.TRANSPARENT, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.TRANSPARENT],
+            [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
+            [COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE, COLORS.SHIRT_BLUE],
+            [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.PANTS_NAVY, COLORS.PANTS_NAVY, COLORS.TRANSPARENT]
+        ]);
+        
+        this.registerSprite('playerCharacter', playerCharacter);
+        window.gameSprites.playerCharacter = playerCharacter;
+        
+        // Bartender sprite
+        const bartender = new PixelSprite([
+            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+            [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN],
+            [COLORS.DARK_BROWN, COLORS.SKIN_TONE, COLORS.SKIN_TONE, COLORS.DARK_BROWN], // With mustache
+            [COLORS.TRANSPARENT, COLORS.METAL, COLORS.METAL, COLORS.TRANSPARENT], // Apron
+            [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
+            [COLORS.METAL, COLORS.METAL, COLORS.METAL, COLORS.METAL],
+            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+            [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
+        ]);
+        
+        this.registerSprite('bartender', bartender);
+        window.gameSprites.bartender = bartender;
+        
+        // More character sprites here...
+    },
+    
+    /**
+     * Generate object sprites
+     */
+    generateObjectSprites() {
+        // Add more object sprites here...
+    },
+    
+    /**
+     * Generate scene backgrounds
+     */
+    generateSceneBackgrounds() {
+        // Add scene background generation here...
+    },
+    
+    /**
+     * Convert all sprites to data URLs for use as images
+     */
+    convertSpritesToDataURLs() {
+        // Convert sprites to data URLs for use as images
+        for (const key in this.sprites) {
+            if (this.sprites[key] instanceof PixelSprite) {
+                window.gameImages[key] = this.sprites[key].toDataURL(4);
+            }
+        }
+        
+        // Add backwards compatibility for older code that uses PNG names
+        window.gameImages['player.png'] = window.gameImages.playerCharacter || '';
+        window.gameImages['bar-background.png'] = window.gameImages.barBackground || '';
+        window.gameImages['street-background.png'] = window.gameImages.streetBackground || '';
+        window.gameImages['hotel-lobby-background.png'] = window.gameImages.hotelLobbyBackground || '';
+        window.gameImages['hotel-hallway-background.png'] = window.gameImages.hotelHallwayBackground || '';
+        window.gameImages['secret-room-background.png'] = window.gameImages.secretRoomBackground || '';
+    },
+    
     /**
      * Helper function to adjust color brightness
      */
     adjustColor(color, amount) {
-        // ... existing adjustColor implementation ...
+        return ColorUtils.adjustBrightness(color, amount);
     }
 };
 
-// Make available globally but also as a module export
+// Make available globally for non-module code
 window.SpriteEngine = SpriteEngine;
-export default SpriteEngine;
 
-// Auto-initialize
-document.addEventListener('DOMContentLoaded', () => SpriteEngine.init());
+// Export as module
+export default SpriteEngine;

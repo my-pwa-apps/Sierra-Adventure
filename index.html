@@ -230,21 +230,28 @@
     </div>
 
     <!-- Engine modules -->
-    <script type="module" src="src/common/color-palette.js"></script>
-    <script type="module" src="src/engine/sprite-engine.js"></script>
-    <script type="module" src="src/engine/scene-manager.js"></script>
-    <script type="module" src="src/engine/character-manager.js"></script>
-    <script type="module" src="src/engine/game-engine.js"></script>
-    
-    <!-- Game initialization -->
-    <script type="module">
-        import gameEngine from './src/engine/game-engine.js';
+    <script src="src/common/color-palette.js" type="module"></script>
+    <script src="src/graphics/PixelSprite.js" type="module"></script>
+    <script src="src/graphics/EnvironmentSprites.js" type="module"></script>
+    <script src="src/engine/sprite-engine.js" type="module"></script>
+    <script src="src/engine/scene-manager.js" type="module"></script>
+    <script src="src/engine/character-manager.js" type="module"></script>
+    <script src="src/engine/game-engine.js" type="module"></script>
+
+    <!-- Use a standard script to initialize everything -->
+    <script>
+      // Initialize the game when everything is loaded
+      window.addEventListener('load', () => {
+        // Initialize modules in sequence
+        if (window.SpriteEngine) {
+          window.SpriteEngine.init();
+        }
         
-        // Initialize the game engine when the page loads
-        window.addEventListener('load', () => gameEngine.init());
-        
-        // Make the Sierra Adventure object work with the new architecture
-        window.SierraAdventure = gameEngine;
+        // Initialize the original game code
+        if (window.SierraAdventure) {
+          window.SierraAdventure.init();
+        }
+      });
     </script>
 </body>
 </html>
