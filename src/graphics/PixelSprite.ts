@@ -87,6 +87,25 @@ export class PixelSprite {
   }
 
   /**
+   * Render the sprite with a shadow for better visual distinction
+   * @param ctx The canvas rendering context
+   * @param x X position to render at
+   * @param y Y position to render at
+   * @param pixelSize Size of each pixel (for scaling)
+   */
+  public renderWithShadow(ctx: CanvasRenderingContext2D, x: number, y: number, pixelSize: number = 1): void {
+    // Render shadow
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#000000';
+    this.render(ctx, x + pixelSize, y + pixelSize, pixelSize);
+    ctx.restore();
+
+    // Render the sprite
+    this.render(ctx, x, y, pixelSize);
+  }
+
+  /**
    * Creates a horizontally flipped copy of this sprite
    * @returns A new PixelSprite that's flipped horizontally
    */

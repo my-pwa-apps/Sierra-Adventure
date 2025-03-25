@@ -235,40 +235,44 @@
     
     <!-- Load essential modules -->
     <script type="module">
-        // Import modules
         import { COLORS, ColorUtils } from './src/common/color-palette.js';
         import { PixelSprite } from './src/graphics/PixelSprite.js';
         import GameEngine from './src/engine/game-engine.js';
-        
+
         // Make globally available
         window.COLORS = COLORS;
         window.ColorUtils = ColorUtils;
         window.PixelSprite = PixelSprite;
         window.GameEngine = GameEngine;
-        
-        // Init when document is loaded
+
+        // Initialize the game engine when the document is loaded
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Modules loaded, initializing game...');
-            // Initialize the game engine
             GameEngine.init();
         });
     </script>
-    
-    <!-- Fallback for non-module browsers -->
     <script>
-        // Wait for everything to be ready
-        window.addEventListener('load', function() {
-            // Check if our modules initialized properly
-            if (!window.GameEngine || !window.GameEngine.init) {
-                console.warn('Module system failed, attempting fallback initialization...');
-                
-                // Try to initialize SierraAdventure directly
-                if (window.SierraAdventure && typeof window.SierraAdventure.init === 'function') {
-                    console.log('Found SierraAdventure, initializing directly...');
-                    window.SierraAdventure.init();
-                } else {
-                    console.error('Cannot find SierraAdventure object, initialization failed!');
-                }
+        // Fix player movement to prevent resetting to the middle
+        window.addEventListener('load', function () {
+            if (window.SierraAdventure) {
+                const originalMovePlayer = window.SierraAdventure.movePlayer;
+                window.SierraAdventure.movePlayer = function (x, y) {
+                    const player = this.domElements.player;
+                    if (!player) return;
+
+                    // Constrain player to scene boundaries
+                    const sceneWidth = 640;
+                    const playerWidth = 32;
+                    x = Math.max(0, Math.min(sceneWidth - playerWidth, x));
+
+                    // Update player position
+                    player.style.left = `${x}px`;
+                    player.style.bottom = '30px'; // Keep player on the floor
+                    player.style.transform = 'none'; // Prevent centering
+
+                    // Check for hotspot interactions
+                    this.checkPositionForHotspots(x, y);
+                };
             }
         });
     </script>
