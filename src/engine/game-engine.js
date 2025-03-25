@@ -41,6 +41,16 @@ const GameEngine = {
         // Generate detailed scenes
         this.generateDetailedScenes();
         
+        // Ensure SierraAdventure is defined and initialize it if missing
+        if (!window.SierraAdventure) {
+            window.SierraAdventure = {
+                init: function() {
+                    console.log('SierraAdventure initialized successfully.');
+                    // ...additional initialization logic...
+                }
+            };
+        }
+
         // Ensure SierraAdventure and its init method are defined before calling
         if (window.SierraAdventure && typeof window.SierraAdventure.init === 'function') {
             console.log('Starting game initialization');
