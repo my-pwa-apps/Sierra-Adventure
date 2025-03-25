@@ -1,7 +1,13 @@
+/**
+ * Game Engine for Sierra Adventure
+ * Handles scene generation and initialization
+ */
 import { COLORS } from '../common/color-palette.js';
 import { PixelSprite } from '../graphics/PixelSprite.js';
 
+// Main Game Engine object
 const GameEngine = {
+    // Initialize game engine
     init() {
         console.log('Initializing Sierra Adventure Game Engine');
         
@@ -9,34 +15,31 @@ const GameEngine = {
         window.gameSprites = window.gameSprites || {};
         window.gameImages = window.gameImages || {};
         
-        // Generate required sprites and scenes
-        this.generateSprites();
-        this.generateScenes();
-        
-        // Load the original SierraAdventure object from placeholder-images.js
-        console.log('Looking for SierraAdventure object...');
-        
-        // Create new SierraAdventure or use existing one
-        if (!window.SierraAdventure) {
-            console.log('SierraAdventure not found, creating new instance');
+        // Set window.SierraAdventure to global scope
+        if (typeof window.SierraAdventure === 'undefined') {
+            console.log('Creating new SierraAdventure object');
             window.SierraAdventure = this.createSierraAdventure();
         } else {
-            console.log('Found existing SierraAdventure, enhancing it');
-            this.enhanceSierraAdventure(window.SierraAdventure);
+            console.log('Found existing SierraAdventure object');
         }
         
-        // Initialize SierraAdventure
-        console.log('Initializing SierraAdventure');
-        window.SierraAdventure.init();
+        // Generate sprite resources
+        this.generateSprites();
+        
+        // Create simple scene backgrounds
+        this.generateScenes();
+        
+        // Initialize the game
+        if (typeof window.SierraAdventure.init === 'function') {
+            console.log('Initializing SierraAdventure');
+            window.SierraAdventure.init();
+        } else {
+            console.error('SierraAdventure.init not found!');
+        }
     },
     
-    /**
-     * Generate all sprites needed for the game
-     */
+    // Generate sprite resources
     generateSprites() {
-        console.log('Generating sprites');
-        
-        // Player character sprite
         const playerCharacter = new PixelSprite([
             [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.BROWN, COLORS.TRANSPARENT],
             [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
@@ -49,7 +52,6 @@ const GameEngine = {
         ]);
         window.gameSprites.playerCharacter = playerCharacter;
         
-        // Bartender sprite
         const bartender = new PixelSprite([
             [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.BROWN, COLORS.TRANSPARENT],
             [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
@@ -62,325 +64,68 @@ const GameEngine = {
         ]);
         window.gameSprites.bartender = bartender;
         
-        // Woman sprite
-        const woman = new PixelSprite([
-            [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
-            [COLORS.YELLOW, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.YELLOW],
-            [COLORS.TRANSPARENT, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.TRANSPARENT],
-            [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
-            [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
-            [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
-            [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
-            [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT]
-        ]);
-        window.gameSprites['mysterious-woman'] = woman;
+        // Generate other character and item sprites
+        const characters = [
+            { name: 'mysterious-woman', color: COLORS.RED },
+            { name: 'door', color: COLORS.BROWN },
+            { name: 'barstool', color: COLORS.LIGHT_BROWN },
+            { name: 'hotel-key', color: COLORS.YELLOW }
+        ];
         
-        // Door sprite
-        const door = new PixelSprite([
-            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.DARK_BROWN, COLORS.YELLOW, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.BROWN]
-        ]);
-        window.gameSprites.door = door;
-        
-        // Other needed sprites
-        const barstool = new PixelSprite([
-            [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.TRANSPARENT],
-            [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.BROWN, COLORS.BROWN],
-            [COLORS.BROWN, COLORS.TRANSPARENT, COLORS.BROWN]
-        ]);
-        window.gameSprites.barstool = barstool;
-        
-        const hotelKey = new PixelSprite([
-            [COLORS.YELLOW, COLORS.YELLOW],
-            [COLORS.YELLOW, COLORS.TRANSPARENT]
-        ]);
-        window.gameSprites['hotel-key'] = hotelKey;
-        
-        console.log('Sprites generated successfully');
+        characters.forEach(char => {
+            window.gameSprites[char.name] = new PixelSprite([
+                [COLORS.TRANSPARENT, char.color, char.color, COLORS.TRANSPARENT],
+                [char.color, char.color, char.color, char.color],
+                [char.color, char.color, char.color, char.color],
+                [COLORS.TRANSPARENT, char.color, char.color, COLORS.TRANSPARENT]
+            ]);
+        });
     },
     
-    /**
-     * Generate all scene backgrounds
-     */
+    // Generate scene backgrounds
     generateScenes() {
         console.log('Generating scene backgrounds');
         
-        // Bar background
-        this.generateBarScene();
+        // Generate backgrounds for all rooms
+        const roomNames = ['bar', 'street', 'hotel-lobby', 'hotel-hallway', 'secret-room'];
+        const baseColors = ['#442200', '#333333', '#554433', '#445566', '#332233'];
         
-        // Street background
-        this.generateStreetScene();
-        
-        // Hotel lobby background
-        this.generateHotelLobbyScene();
-        
-        // Hotel hallway background
-        this.generateHotelHallwayScene();
-        
-        // Secret room background
-        this.generateSecretRoomScene();
-        
-        console.log('Scene backgrounds generated successfully');
+        roomNames.forEach((name, index) => {
+            this.generateRoomBackground(name, baseColors[index]);
+        });
     },
     
-    /**
-     * Generate bar scene background
-     */
-    generateBarScene() {
+    // Generate a single room background
+    generateRoomBackground(roomId, baseColor) {
         const canvas = document.createElement('canvas');
         canvas.width = 640;
         canvas.height = 400;
         const ctx = canvas.getContext('2d');
         
-        // Dark wooden background
-        ctx.fillStyle = '#442200';
+        // Fill with base color
+        ctx.fillStyle = baseColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Add noise texture
         for (let i = 0; i < 5000; i++) {
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
+            const x = Math.floor(Math.random() * canvas.width);
+            const y = Math.floor(Math.random() * canvas.height);
             const brightness = Math.random() > 0.5 ? 20 : -20;
-            ctx.fillStyle = this.adjustColor('#442200', brightness);
+            ctx.fillStyle = this.adjustColor(baseColor, brightness);
             ctx.fillRect(x, y, 1, 1);
         }
         
-        // Draw floor
-        ctx.fillStyle = '#221100';
+        // Add floor
+        ctx.fillStyle = this.adjustColor(baseColor, -30);
         ctx.fillRect(0, 300, canvas.width, 100);
         
-        // Draw bar counter
-        ctx.fillStyle = '#553322';
-        ctx.fillRect(350, 150, 250, 100);
-        
-        // Draw shelves behind bar
-        ctx.fillStyle = '#332211';
-        ctx.fillRect(350, 50, 250, 100);
-        
-        // Draw bottles on shelves
-        for (let i = 0; i < 10; i++) {
-            const x = 360 + i * 25;
-            ctx.fillStyle = ['#884422', '#22AA22', '#AA2222', '#2222AA'][i % 4];
-            ctx.fillRect(x, 70, 15, 30);
-        }
-        
-        // Draw door
-        ctx.fillStyle = '#553322';
-        ctx.fillRect(50, 150, 80, 150);
-        ctx.fillStyle = '#332211';
-        ctx.fillRect(55, 155, 70, 140);
-        ctx.fillStyle = '#CCCC00';
-        ctx.beginPath();
-        ctx.arc(120, 225, 5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Draw tables
-        for (let i = 0; i < 2; i++) {
-            const x = 150 + i * 100;
-            ctx.fillStyle = '#332211';
-            ctx.fillRect(x, 250, 70, 30);
-        }
-        
-        // Store in gameImages
-        window.gameImages['bar-background.png'] = canvas.toDataURL();
+        // Store the background
+        const dataUrl = canvas.toDataURL();
+        window.gameImages[`${roomId}-background.png`] = dataUrl;
+        console.log(`Generated background for ${roomId}`);
     },
     
-    /**
-     * Generate street scene background
-     */
-    generateStreetScene() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        
-        // Night sky
-        ctx.fillStyle = '#000022';
-        ctx.fillRect(0, 0, canvas.width, 200);
-        
-        // Stars
-        for (let i = 0; i < 30; i++) {
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * 150;
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(x, y, 1, 1);
-        }
-        
-        // Street
-        ctx.fillStyle = '#222222';
-        ctx.fillRect(0, 200, canvas.width, 200);
-        
-        // Buildings
-        for (let i = 0; i < 3; i++) {
-            const x = i * 200;
-            const height = 150 + Math.random() * 50;
-            ctx.fillStyle = '#334455';
-            ctx.fillRect(x, 200 - height, 180, height);
-            
-            // Windows
-            for (let row = 0; row < 4; row++) {
-                for (let col = 0; col < 4; col++) {
-                    const wx = x + 20 + col * 40;
-                    const wy = 200 - height + 20 + row * 30;
-                    ctx.fillStyle = Math.random() > 0.3 ? '#FFFF77' : '#222222';
-                    ctx.fillRect(wx, wy, 20, 15);
-                }
-            }
-        }
-        
-        // Store in gameImages
-        window.gameImages['street-background.png'] = canvas.toDataURL();
-    },
-    
-    /**
-     * Generate hotel lobby scene background
-     */
-    generateHotelLobbyScene() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        
-        // Background
-        ctx.fillStyle = '#332211';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Floor
-        ctx.fillStyle = '#221100';
-        ctx.fillRect(0, 300, canvas.width, 100);
-        
-        // Reception desk
-        ctx.fillStyle = '#443322';
-        ctx.fillRect(250, 150, 200, 150);
-        ctx.fillStyle = '#554433';
-        ctx.fillRect(250, 150, 200, 20);
-        
-        // Plant
-        ctx.fillStyle = '#006600';
-        ctx.beginPath();
-        ctx.arc(100, 200, 30, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#664422';
-        ctx.fillRect(90, 230, 20, 70);
-        
-        // Exit door
-        ctx.fillStyle = '#554433';
-        ctx.fillRect(500, 150, 80, 150);
-        ctx.fillStyle = '#332211';
-        ctx.fillRect(505, 155, 70, 140);
-        
-        // Store in gameImages
-        window.gameImages['hotel-lobby-background.png'] = canvas.toDataURL();
-    },
-    
-    /**
-     * Generate hotel hallway scene
-     */
-    generateHotelHallwayScene() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        
-        // Hallway wall
-        ctx.fillStyle = '#554433';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Floor
-        ctx.fillStyle = '#332211';
-        ctx.fillRect(0, 300, canvas.width, 100);
-        
-        // Ceiling
-        ctx.fillStyle = '#443322';
-        ctx.fillRect(0, 0, canvas.width, 50);
-        
-        // Wall trim
-        ctx.fillStyle = '#665544';
-        ctx.fillRect(0, 290, canvas.width, 10);
-        ctx.fillRect(0, 50, canvas.width, 10);
-        
-        // Doors on left
-        for (let i = 0; i < 3; i++) {
-            const x = 50 + i * 100;
-            ctx.fillStyle = '#332211';
-            ctx.fillRect(x, 150, 70, 140);
-            
-            // Door frame
-            ctx.strokeStyle = '#221100';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, 150, 70, 140);
-            
-            // Door number
-            ctx.fillStyle = '#CCCC00';
-            ctx.beginPath();
-            ctx.arc(x + 35, 170, 10, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#000000';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`20${i+1}`, x + 35, 173);
-            
-            // Door handle
-            ctx.fillStyle = '#CCCC00';
-            ctx.beginPath();
-            ctx.arc(x + 60, 220, 5, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Store in gameImages
-        window.gameImages['hotel-hallway-background.png'] = canvas.toDataURL();
-    },
-    
-    /**
-     * Generate secret room scene
-     */
-    generateSecretRoomScene() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        
-        // Room background
-        ctx.fillStyle = '#220022';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Floor
-        ctx.fillStyle = '#331133';
-        ctx.fillRect(0, 300, canvas.width, 100);
-        
-        // Card table
-        ctx.fillStyle = '#006600';
-        ctx.fillRect(200, 250, 200, 50);
-        ctx.fillStyle = '#004400';
-        ctx.fillRect(210, 260, 180, 30);
-        
-        // Poker chips
-        for (let i = 0; i < 3; i++) {
-            const x = 250 + i * 40;
-            ctx.fillStyle = ['#FF0000', '#FFFFFF', '#0000FF'][i];
-            ctx.beginPath();
-            ctx.arc(x, 270, 10, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Exit door
-        ctx.fillStyle = '#331133';
-        ctx.fillRect(100, 150, 70, 150);
-        ctx.fillStyle = '#220022';
-        ctx.fillRect(105, 155, 60, 140);
-        
-        // Store in gameImages
-        window.gameImages['secret-room-background.png'] = canvas.toDataURL();
-    },
-    
-    /**
-     * Adjust color brightness
-     */
+    // Helper function to adjust color brightness
     adjustColor(color, amount) {
         if (!color || color === 'transparent') return color;
         
@@ -399,19 +144,10 @@ const GameEngine = {
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     },
     
-    /**
-     * Enhance the existing SierraAdventure object with new functionality
-     */
-    enhanceSierraAdventure(sierraAdv) {
-        // Add any enhancements needed
-    },
-    
-    /**
-     * Create a new SierraAdventure object if none exists
-     */
+    // Create a minimal SierraAdventure object
     createSierraAdventure() {
-        // Just the basic structure, will be populated elsewhere
         return {
+            // Game state
             gameState: {
                 currentRoom: 'bar',
                 inventory: [],
@@ -427,6 +163,7 @@ const GameEngine = {
                 }
             },
             
+            // Room data
             rooms: {
                 bar: {
                     background: 'bar-background.png',
@@ -436,10 +173,10 @@ const GameEngine = {
                             name: 'bartender',
                             x: 400, y: 150,
                             width: 60, height: 100,
-                            description: "A gruff looking bartender.",
+                            description: "A gruff looking bartender wiping glasses clean.",
                             actions: {
                                 look: "The bartender looks like he's seen it all.",
-                                talk: "Hello there, stranger.",
+                                talk: "\"What'll it be, stranger?\"",
                                 use: "I don't think you should try to use the bartender."
                             }
                         },
@@ -452,15 +189,359 @@ const GameEngine = {
                                 look: "It's an old wooden door with peeling paint.",
                                 use: "exit-to-street"
                             }
+                        },
+                        {
+                            name: 'mysterious-woman',
+                            x: 200, y: 200,
+                            width: 50, height: 100,
+                            description: "A beautiful woman in a red dress sitting alone at a table.",
+                            actions: {
+                                look: "She's gorgeous with long blonde hair and a red dress.",
+                                talk: "You approach with your best smile. \"Hello there, handsome,\" she says with a wink.",
+                                use: "You should probably talk to her first."
+                            }
                         }
                     ],
-                    exits: { 'street': { x: 50, y: 200 } }
+                    exits: {
+                        'street': { x: 50, y: 200 }
+                    }
+                },
+                street: {
+                    background: 'street-background.png',
+                    description: "You're on a busy street with neon signs illuminating the night.",
+                    hotspots: [],
+                    exits: {
+                        'bar': { x: 400, y: 200 },
+                        'hotel-lobby': { x: 50, y: 200 }
+                    }
+                },
+                'hotel-lobby': {
+                    background: 'hotel-lobby-background.png',
+                    description: "You're in the lobby of the Starlight Hotel.",
+                    hotspots: [],
+                    exits: {
+                        'street': { x: 450, y: 200 },
+                        'hotel-hallway': { x: 200, y: 200 }
+                    }
+                },
+                'hotel-hallway': {
+                    background: 'hotel-hallway-background.png',
+                    description: "You're in a long, dimly lit hallway on the second floor of the hotel.",
+                    hotspots: [],
+                    exits: {
+                        'hotel-lobby': { x: 100, y: 200 }
+                    }
+                },
+                'secret-room': {
+                    background: 'secret-room-background.png',
+                    description: "You've entered Room 204. To your surprise, it's actually a secret casino operation!",
+                    hotspots: [],
+                    exits: {
+                        'hotel-hallway': { x: 100, y: 200 }
+                    }
                 }
-                // Other rooms would be defined here
             },
             
+            // DOM elements cache
+            domElements: {},
+            
+            // Initialize the game
             init() {
-                console.log("Basic SierraAdventure init called");
+                this.cacheDOMElements();
+                this.setupEventListeners();
+                this.generatePlayerSprite();
+                this.updateRoom();
+                this.timers = {
+                    gameTime: setInterval(() => this.updateGameTime(), 1000)
+                };
+                
+                // Show welcome message
+                this.showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${this.gameState.playerName}, a lovable loser on a quest for love and excitement in the big city.`);
+            },
+            
+            // Cache DOM elements
+            cacheDOMElements() {
+                this.domElements = {
+                    scene: document.querySelector('.scene'),
+                    player: document.getElementById('player'),
+                    roomCanvas: document.getElementById('room-canvas'),
+                    inventory: document.getElementById('inventory'),
+                    messageBox: document.getElementById('message-box'),
+                    messageText: document.getElementById('message-text'),
+                    messageOk: document.getElementById('message-ok'),
+                    scoreElement: document.querySelector('.score'),
+                    timeElement: document.getElementById('game-time'),
+                    commandInput: document.getElementById('command-input'),
+                    actionButtons: {
+                        look: document.getElementById('look-btn'),
+                        talk: document.getElementById('talk-btn'),
+                        walk: document.getElementById('walk-btn'),
+                        use: document.getElementById('use-btn'),
+                        inventory: document.getElementById('inventory-btn')
+                    }
+                };
+            },
+            
+            // Set up event listeners
+            setupEventListeners() {
+                this.domElements.messageOk.addEventListener('click', () => this.closeMessage());
+                this.domElements.scene.addEventListener('click', (e) => this.handleSceneClick(e));
+                document.addEventListener('keydown', (e) => this.handleKeyboardMovement(e));
+                
+                // Action buttons
+                if (this.domElements.actionButtons) {
+                    Object.entries(this.domElements.actionButtons).forEach(([action, button]) => {
+                        if (button) {
+                            button.addEventListener('click', () => this.setPlayerAction(action));
+                        }
+                    });
+                }
+            },
+            
+            // Generate player sprite
+            generatePlayerSprite() {
+                const player = this.domElements.player;
+                if (!player) return;
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 64;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                
+                const ctx = canvas.getContext('2d');
+                
+                if (window.gameSprites && window.gameSprites.playerCharacter) {
+                    window.gameSprites.playerCharacter.render(ctx, 0, 0, 8);
+                } else {
+                    // Fallback - simple player representation
+                    ctx.fillStyle = '#3050FF'; // Blue
+                    ctx.fillRect(8, 16, 16, 32); // Body
+                    ctx.fillStyle = '#FFC8A2'; // Skin tone
+                    ctx.fillRect(8, 0, 16, 16); // Head
+                }
+                
+                player.appendChild(canvas);
+            },
+            
+            // Update room
+            updateRoom() {
+                const room = this.rooms[this.gameState.currentRoom];
+                if (!room) {
+                    console.error('Room not found:', this.gameState.currentRoom);
+                    return;
+                }
+                
+                const canvas = this.domElements.roomCanvas;
+                if (!canvas) {
+                    console.error('Canvas not found');
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw room background
+                const bgKey = `${this.gameState.currentRoom}-background.png`;
+                if (window.gameImages && window.gameImages[bgKey]) {
+                    console.log(`Loading background: ${bgKey}`);
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        this.drawRoomElements(ctx, room);
+                    };
+                    img.onerror = (err) => {
+                        console.error('Error loading background image:', err);
+                        // Fallback
+                        ctx.fillStyle = '#222222';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        this.drawRoomElements(ctx, room);
+                    };
+                    img.src = window.gameImages[bgKey];
+                } else {
+                    console.error(`Background image not found: ${bgKey}`);
+                    // Fallback
+                    ctx.fillStyle = '#222222';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    this.drawRoomElements(ctx, room);
+                }
+            },
+            
+            // Draw room elements (hotspots, exits)
+            drawRoomElements(ctx, room) {
+                // Draw hotspots
+                room.hotspots.forEach(hotspot => {
+                    const sprite = window.gameSprites[hotspot.name];
+                    if (sprite) {
+                        sprite.render(ctx, hotspot.x, hotspot.y, 8);
+                    } else if (window.debugMode) {
+                        // Debug visualization of hotspots
+                        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(hotspot.x, hotspot.y, hotspot.width, hotspot.height);
+                        
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                        ctx.font = '10px monospace';
+                        ctx.fillText(hotspot.name, hotspot.x, hotspot.y - 2);
+                    }
+                });
+                
+                // Draw exits
+                if (room.exits) {
+                    ctx.fillStyle = 'rgba(100, 255, 100, 0.2)';
+                    Object.entries(room.exits).forEach(([exitName, exitPos]) => {
+                        ctx.beginPath();
+                        ctx.arc(exitPos.x, exitPos.y, 15, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '12px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`To: ${exitName}`, exitPos.x, exitPos.y + 30);
+                    });
+                }
+            },
+            
+            // Show message in message box
+            showMessage(message) {
+                console.log('Show message:', message);
+                if (this.domElements.messageText && this.domElements.messageBox) {
+                    this.domElements.messageText.textContent = message;
+                    this.domElements.messageBox.style.display = 'block';
+                } else {
+                    console.error('Message elements not found');
+                    alert(message); // Fallback
+                }
+            },
+            
+            // Close message box
+            closeMessage() {
+                if (this.domElements.messageBox) {
+                    this.domElements.messageBox.style.display = 'none';
+                }
+            },
+            
+            // Update game time display
+            updateGameTime() {
+                this.gameState.gameTime++;
+                
+                const hours = Math.floor(this.gameState.gameTime / 60) % 24;
+                const minutes = this.gameState.gameTime % 60;
+                
+                if (this.domElements.timeElement) {
+                    this.domElements.timeElement.textContent = 
+                        `Time: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            },
+            
+            // Handle scene clicks
+            handleSceneClick(e) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const clickedHotspot = this.findHotspotAt(x, y);
+                
+                if (clickedHotspot) {
+                    this.handleHotspotInteraction(clickedHotspot);
+                } else if (this.gameState.playerAction === 'walk') {
+                    this.movePlayer(x, y);
+                }
+            },
+            
+            // Find hotspot at coordinates
+            findHotspotAt(x, y) {
+                const room = this.rooms[this.gameState.currentRoom];
+                for (const hotspot of room.hotspots) {
+                    if (x >= hotspot.x && x <= hotspot.x + hotspot.width &&
+                        y >= hotspot.y && y <= hotspot.y + hotspot.height) {
+                        return hotspot;
+                    }
+                }
+                return null;
+            },
+            
+            // Handle hotspot interaction
+            handleHotspotInteraction(hotspot) {
+                const action = this.gameState.playerAction;
+                let actionResult = hotspot.actions[action];
+                
+                if (actionResult) {
+                    if (typeof actionResult === 'function') {
+                        actionResult = actionResult();
+                    }
+                    
+                    if (actionResult.startsWith('exit-to-')) {
+                        // Handle room transition
+                        const newRoom = actionResult.replace('exit-to-', '');
+                        this.showMessage(`Going to ${newRoom}...`);
+                        
+                        setTimeout(() => {
+                            this.gameState.currentRoom = newRoom;
+                            this.updateRoom();
+                        }, 1500);
+                    } else {
+                        this.showMessage(actionResult);
+                    }
+                } else {
+                    this.showMessage(`You can't ${action} that.`);
+                }
+            },
+            
+            // Move player
+            movePlayer(x, y) {
+                const player = this.domElements.player;
+                if (!player) return;
+                
+                x = Math.max(0, Math.min(608, x)); // 640 - 32 player width
+                player.style.left = `${x}px`;
+            },
+            
+            // Set player action
+            setPlayerAction(action) {
+                this.gameState.playerAction = action;
+                
+                if (!this.domElements.actionButtons) return;
+                
+                Object.values(this.domElements.actionButtons).forEach(btn => {
+                    if (btn) btn.style.backgroundColor = '#555';
+                });
+                
+                const button = this.domElements.actionButtons[action];
+                if (button) button.style.backgroundColor = '#a00';
+            },
+            
+            // Handle keyboard movement
+            handleKeyboardMovement(e) {
+                if (!this.domElements.messageBox) return;
+                if (this.domElements.messageBox.style.display === 'block') return;
+                
+                if (this.gameState.playerAction !== 'walk') return;
+                
+                const player = this.domElements.player;
+                if (!player) return;
+                
+                const currentX = parseInt(player.style.left) || 320;
+                const moveStep = 10;
+                
+                let newX = currentX;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                        newX = Math.max(0, currentX - moveStep);
+                        e.preventDefault();
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        newX = Math.min(608, currentX + moveStep);
+                        e.preventDefault();
+                        break;
+                }
+                
+                if (newX !== currentX) {
+                    this.movePlayer(newX, 0);
+                }
             }
         };
     }

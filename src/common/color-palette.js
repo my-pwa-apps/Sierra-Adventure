@@ -1,8 +1,6 @@
 /**
  * Color palette for Sierra Adventure
  */
-
-// Define color constants
 export const COLORS = {
   // Base colors
   TRANSPARENT: 'transparent',
@@ -37,6 +35,12 @@ export const COLORS = {
 
 // Color utility functions
 export const ColorUtils = {
+  /**
+   * Adjust color brightness
+   * @param {string} color - Hex color code
+   * @param {number} amount - Brightness adjustment (-255 to 255)
+   * @returns {string} - Adjusted color
+   */
   adjustBrightness(color, amount) {
     if (!color || color === COLORS.TRANSPARENT) return color;
     
@@ -49,6 +53,6 @@ export const ColorUtils = {
   }
 };
 
-// Make available globally for compatibility
+// Make available globally
 window.COLORS = COLORS;
 window.ColorUtils = ColorUtils;
