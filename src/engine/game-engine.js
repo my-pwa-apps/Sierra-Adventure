@@ -151,7 +151,28 @@ const GameEngine = {
             elements: [
                 { type: 'chair', x: 100, y: 300, scale: 4 },
                 { type: 'table', x: 150, y: 300, scale: 4 },
-                { type: 'chair', x: 220, y: 300, scale: 4 }
+                { type: 'chair', x: 220, y: 300, scale: 4 },
+                { type: 'chair', x: 280, y: 300, scale: 4 },
+                { type: 'table', x: 330, y: 300, scale: 4 },
+                { type: 'chair', x: 400, y: 300, scale: 4 },
+                { type: 'key', x: 330, y: 280, scale: 2 }, // Key on table
+                { type: 'paper', x: 150, y: 280, scale: 2 }, // Paper on table
+            ],
+            npcs: [
+                { 
+                    type: 'bartender', 
+                    x: 500, 
+                    y: 200, 
+                    scale: 5,
+                    name: 'Bartender' 
+                },
+                {
+                    type: 'playerCharacter',  // Using player character sprite as a patron
+                    x: 330, 
+                    y: 265, 
+                    scale: 4,
+                    name: 'Bar Patron'
+                }
             ],
             hotspots: [
                 { 
@@ -165,6 +186,12 @@ const GameEngine = {
                     x: 50, y: 220, 
                     width: 60, height: 80,
                     description: 'A door leading to the street.'
+                },
+                { 
+                    name: 'neon-sign',
+                    x: 50, y: 50,
+                    width: 80, height: 40,
+                    description: 'A flickering neon sign that says "BAR".'
                 }
             ]
         });

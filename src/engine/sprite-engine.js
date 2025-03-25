@@ -259,58 +259,118 @@ const SpriteEngine = {
         canvas.height = 400;
         const ctx = canvas.getContext('2d');
         
-        // Background wall (Sierra games often used dark, warm colors for indoor scenes)
+        // Background wall (Classic Sierra bar with wood paneling)
         ctx.fillStyle = '#442211';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Wood panel texture for walls (typical of Sierra games)
+        for (let y = 0; y < canvas.height; y += 40) {
+            ctx.fillStyle = '#3A1D0A'; // Darker line for wood grain
+            ctx.fillRect(0, y, canvas.width, 2);
+        }
         
         // Floor (darker wood color)
         ctx.fillStyle = '#221100';
         ctx.fillRect(0, 300, canvas.width, 100);
         
-        // Add subtle floor pattern (Sierra-style wood grain)
+        // Floor pattern (Sierra-style wood grain)
         for (let x = 0; x < canvas.width; x += 20) {
             ctx.fillStyle = '#331100';
             ctx.fillRect(x, 300, 10, 100);
         }
         
-        // Bar counter on right side
+        // Bar counter on right side (larger and more prominent)
         ctx.fillStyle = '#8B4513';
         ctx.fillRect(400, 240, 200, 60);
         ctx.fillStyle = '#A05000';
         ctx.fillRect(400, 240, 200, 10); // Counter edge highlight
         
-        // Shelves with bottles behind bar
-        ctx.fillStyle = '#5C3317';
-        ctx.fillRect(400, 100, 200, 80);
+        // Bar rail (common in Sierra bar scenes)
+        ctx.fillStyle = '#C0A080';
+        ctx.fillRect(400, 260, 200, 5);
         
-        // Bottles (various colors typical of Sierra games)
-        for (let i = 0; i < 10; i++) {
-            const bottleX = 420 + i * 18;
-            ctx.fillStyle = ['#00FF00', '#0000FF', '#FF0000', '#FFFF00'][i % 4];
-            ctx.fillRect(bottleX, 110, 10, 25);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(bottleX + 3, 120, 4, 10); // Bottle highlight
+        // Shelves with bottles behind bar (3D effect)
+        ctx.fillStyle = '#3A1D0A'; // Dark wood color
+        ctx.fillRect(400, 100, 200, 120); // Back wall of shelves
+        
+        // Shelf dividers
+        for (let y = 130; y < 220; y += 30) {
+            ctx.fillStyle = '#5C3317';
+            ctx.fillRect(400, y, 200, 5);
         }
         
-        // Tables with chairs
+        // Bottles (various colors in classic Sierra style)
+        for (let i = 0; i < 12; i++) {
+            const bottleX = 415 + (i % 6) * 33;
+            const bottleY = 105 + Math.floor(i / 6) * 40;
+            
+            // Randomize bottle colors like in Sierra games
+            const bottleColors = ['#00FF00', '#0000FF', '#FF0000', '#FFFF00', '#FF00FF', '#00FFFF'];
+            ctx.fillStyle = bottleColors[i % bottleColors.length];
+            
+            // Taller, narrower bottles (Sierra style)
+            ctx.fillRect(bottleX, bottleY, 15, 30);
+            
+            // Bottle highlights (Sierra often used simple highlights)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(bottleX + 5, bottleY + 5, 5, 10);
+        }
+        
+        // Add a mirror behind the bar (common in Sierra bars)
+        ctx.fillStyle = '#708090'; // Slate gray
+        ctx.fillRect(440, 150, 120, 70);
+        ctx.strokeStyle = '#C0A080'; // Gold frame
+        ctx.lineWidth = 3;
+        ctx.strokeRect(440, 150, 120, 70);
+        
+        // Tables with chairs (scattered around the scene)
         for (let i = 0; i < 3; i++) {
             const tableX = 80 + i * 100;
+            
             // Table
             ctx.fillStyle = '#8B4513';
             ctx.fillRect(tableX, 260, 60, 40);
+            ctx.fillStyle = '#A05000'; // Table edge
+            ctx.fillRect(tableX, 260, 60, 5);
             
             // Chairs
             ctx.fillStyle = '#A05000';
-            ctx.fillRect(tableX - 20, 270, 20, 20);
-            ctx.fillRect(tableX + 60, 270, 20, 20);
+            ctx.fillRect(tableX - 20, 270, 20, 30);
+            ctx.fillRect(tableX + 60, 270, 20, 30);
         }
         
-        // Add a typical Sierra neon sign
+        // Add a Sierra-style jukebox (distinctive landmark)
+        ctx.fillStyle = '#8B0000'; // Dark red
+        ctx.fillRect(30, 230, 40, 70);
+        // Jukebox lights
+        for (let y = 240; y < 290; y += 10) {
+            ctx.fillStyle = ['#FF00FF', '#00FFFF', '#FFFF00'][Math.floor(y/10) % 3];
+            ctx.fillRect(40, y, 20, 5);
+        }
+        
+        // Add a typical Sierra neon sign (more prominent)
         ctx.fillStyle = '#000000';
         ctx.fillRect(50, 50, 80, 40);
-        ctx.font = '20px Arial';
-        ctx.fillStyle = '#FF00FF'; // Classic magenta neon
-        ctx.fillText('BAR', 65, 75);
+        // Text "BAR" with Sierra-style glow effect
+        ctx.fillStyle = '#FF00FF'; // Magenta base
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('BAR', 65, 78);
+        // Glow effect
+        ctx.shadowColor = '#FF00FF';
+        ctx.shadowBlur = 10;
+        ctx.fillText('BAR', 65, 78);
+        ctx.shadowBlur = 0;
+        
+        // Add some Sierra-style wall decorations
+        ctx.fillStyle = '#A05000'; // Frame color
+        ctx.fillRect(150, 100, 60, 40);
+        ctx.fillStyle = '#87CEEB'; // Picture
+        ctx.fillRect(155, 105, 50, 30);
+        
+        ctx.fillStyle = '#A05000';
+        ctx.fillRect(250, 110, 40, 60);
+        ctx.fillStyle = '#006400';
+        ctx.fillRect(255, 115, 30, 50);
         
         // Store the scene
         window.gameImages['bar-background'] = canvas.toDataURL();

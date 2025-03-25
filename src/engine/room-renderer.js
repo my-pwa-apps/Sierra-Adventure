@@ -93,8 +93,14 @@ const RoomRenderer = {
         // Draw the background
         this.drawBackground(scene);
         
-        // Draw the elements
+        // Draw the elements (furniture, objects, etc.)
         this.drawElements(scene);
+        
+        // Draw NPCs
+        this.drawNPCs(scene);
+        
+        // Draw player character
+        this.drawPlayer();
         
         // Draw debug info if needed
         if (window.debugMode) {
@@ -159,6 +165,62 @@ const RoomRenderer = {
         // Draw the sprite at the element position with Sierra-style pixel scaling
         const scale = element.scale || 4; // Sierra games used chunky pixels
         sprite.render(this.ctx, element.x, element.y, scale);
+    },
+    
+    /**
+     * Draw all NPCs in the scene
+     * @param {object} scene - Scene to draw NPCs for
+     */
+    drawNPCs(scene) {
+        if (!scene.npcs) return;
+        
+        // Draw each NPC
+        scene.npcs.forEach(npc => {
+            const sprite = SpriteEngine.getSprite(npc.type);
+            if (!sprite) {
+                console.warn(`Sprite not found for NPC type: ${npc.type}`);
+                return;
+            }
+            
+            // Draw the NPC at their position
+            const scale = npc.scale || 4;
+            sprite.render(this.ctx, npc.x, npc.y, scale);
+            
+            // Draw NPC name if specified
+            if (npc.name && window.showNames) {
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.font = '12px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(npc.name, npc.x + (sprite.width * scale / 2), npc.y - 10);
+            }
+        });
+    },
+    
+    /**
+     * Draw the player character
+     */
+    drawPlayer() {
+        // Get player position from game state
+        const player = window.SierraAdventure?.domElements?.player;
+        if (!player) return;
+        
+        // Get bounding rect to calculate position
+        const rect = player.getBoundingClientRect();
+        const canvasRect = this.canvas.getBoundingClientRect();
+        
+        // Calculate position relative to canvas
+        const x = rect.left - canvasRect.left + (rect.width / 2);
+        const y = this.canvas.height - 100; // Place on floor
+        
+        // Draw player character
+        const playerSprite = SpriteEngine.getSprite('playerCharacter');
+        if (playerSprite) {
+            playerSprite.render(this.ctx, x - 16, y - 32, 4); // Center the player
+        } else {
+            // Fallback if sprite not loaded
+            this.ctx.fillStyle = '#FF0000';
+            this.ctx.fillRect(x - 10, y - 30, 20, 30);
+        }
     },
     
     /**
