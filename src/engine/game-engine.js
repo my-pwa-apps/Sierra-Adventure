@@ -1,3 +1,4 @@
+import SpriteEngine from './sprite-engine.js';
 import { COLORS } from '../common/color-palette.js';
 import { PixelSprite } from '../graphics/PixelSprite.js';
 import { barCounter, neonSign, liquorBottle } from '../graphics/EnvironmentSprites.js';
