@@ -230,28 +230,37 @@
     </div>
 
     <!-- Engine modules -->
+    <script src="placeholder-images.js"></script>
     <script src="src/common/color-palette.js" type="module"></script>
     <script src="src/graphics/PixelSprite.js" type="module"></script>
     <script src="src/graphics/EnvironmentSprites.js" type="module"></script>
-    <script src="src/engine/sprite-engine.js" type="module"></script>
-    <script src="src/engine/scene-manager.js" type="module"></script>
-    <script src="src/engine/character-manager.js" type="module"></script>
     <script src="src/engine/game-engine.js" type="module"></script>
 
-    <!-- Use a standard script to initialize everything -->
+    <!-- Compatibility bridge script -->
     <script>
-      // Initialize the game when everything is loaded
-      window.addEventListener('load', () => {
-        // Initialize modules in sequence
-        if (window.SpriteEngine) {
-          window.SpriteEngine.init();
-        }
-        
-        // Initialize the original game code
-        if (window.SierraAdventure) {
+    // This script bridges between modules and global namespace
+    window.addEventListener('load', function() {
+      // Check if our modules initialized properly
+      if (window.gameEngine) {
+        console.log("Game engine detected, initializing...");
+        window.gameEngine.init();
+      } else {
+        console.error("Game engine not found!");
+
+        // Fallback initialization
+        if (window.SierraAdventure && typeof window.SierraAdventure.init === 'function') {
+          console.log("Falling back to direct SierraAdventure initialization");
           window.SierraAdventure.init();
         }
-      });
+      }
+    });
+
+    // Create SimpleSprite to make compatibility with original code
+    if (typeof window.SimpleSprite !== 'function') {
+      window.SimpleSprite = function(grid) {
+        return new (window.PixelSprite || function(){})(grid);
+      };
+    }
     </script>
 </body>
 </html>

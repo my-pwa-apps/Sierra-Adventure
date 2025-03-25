@@ -1,133 +1,75 @@
 /**
- * Main Game Engine for Sierra Adventure
- * Manages the overall game state and coordinates other modules
+ * Game Engine - Main engine for Sierra Adventure Game
  */
-
-import SpriteEngine from './sprite-engine.js';
-import SceneManager from './scene-manager.js';
-import CharacterManager from './character-manager.js';
+import { PixelSprite } from '../graphics/PixelSprite.js';
+import { environmentSprites } from '../graphics/EnvironmentSprites.js';
 import { COLORS } from '../common/color-palette.js';
 
-class GameEngine {
-    constructor() {
-        this.gameState = {
-            currentRoom: 'bar',
-            score: 0,
-            gameTime: 0,
-            playerAction: 'walk',
-            flags: {}
-        };
-        
-        this.domElements = {};
-        this.eventHandlers = {};
-        this.timers = {};
-        
-        // Sub-systems
-        this.sprites = SpriteEngine;
-        this.scenes = SceneManager;
-        this.characters = CharacterManager;
+// Create gameplay-specific engine
+const GameEngine = {
+  // Initialize with key components
+  init() {
+    console.log('Initializing game engine...');
+    
+    // Initialize global objects for compatibility
+    this.initGlobalCompat();
+    
+    // Generate basic sprites
+    this.generateDefaultSprites();
+    
+    // Bridge to original SierraAdventure functionality
+    if (window.SierraAdventure && typeof window.SierraAdventure.init === 'function') {
+      console.log('Initializing original SierraAdventure code...');
+      window.SierraAdventure.init();
+    } else {
+      console.error('SierraAdventure object not available or missing init function');
     }
     
-    /**
-     * Initialize the game engine
-     */
-    async init() {
-        console.log('Initializing Sierra Adventure Game Engine...');
-        
-        // Initialize sub-systems
-        await this.sprites.init();
-        
-        // Create player character
-        this.characters.createPlayer({ name: 'Larry' });
-        
-        // Cache DOM elements
-        this.cacheDomElements();
-        
-        // Set up event handlers
-        this.setupEventHandlers();
-        
-        // Set up game timers
-        this.setupTimers();
-        
-        console.log('Game engine initialized successfully');
-        
-        return this;
-    }
+    return this;
+  },
+  
+  // Setup global compatibility objects
+  initGlobalCompat() {
+    // Ensure these objects exist for backward compatibility
+    window.gameSprites = window.gameSprites || {};
+    window.gameImages = window.gameImages || {};
     
-    /**
-     * Cache frequently used DOM elements for better performance
-     */
-    cacheDomElements() {
-        this.domElements = {
-            scene: document.querySelector('.scene'),
-            player: document.getElementById('player'),
-            roomCanvas: document.getElementById('room-canvas'),
-            inventory: document.getElementById('inventory'),
-            messageBox: document.getElementById('message-box'),
-            messageText: document.getElementById('message-text'),
-            messageOk: document.getElementById('message-ok'),
-            scoreElement: document.querySelector('.score'),
-            timeElement: document.getElementById('game-time'),
-            commandInput: document.getElementById('command-input'),
-            actionButtons: {
-                look: document.getElementById('look-btn'),
-                talk: document.getElementById('talk-btn'),
-                walk: document.getElementById('walk-btn'),
-                use: document.getElementById('use-btn'),
-                inventory: document.getElementById('inventory-btn')
-            }
-        };
-    }
+    // Generate player character sprite
+    const playerCharacter = environmentSprites.createPlayerSprite();
+    window.gameSprites.playerCharacter = playerCharacter;
+    window.gameImages['player.png'] = playerCharacter.toDataURL(4);
     
-    /**
-     * Set up event handlers
-     */
-    setupEventHandlers() {
-        // ...existing event handler setup code...
-    }
+    // Generate room backgrounds
+    const rooms = ['bar', 'street', 'hotel-lobby', 'hotel-hallway', 'secret-room'];
+    rooms.forEach(roomId => {
+      const bgSprite = environmentSprites.generateRoomBackground(roomId);
+      const basename = roomId + '-background';
+      window.gameSprites[basename] = bgSprite;
+      window.gameImages[basename + '.png'] = bgSprite.toDataURL(4);
+    });
     
-    /**
-     * Set up game timers
-     */
-    setupTimers() {
-        this.timers.gameTime = setInterval(() => this.updateGameTime(), 1000);
-    }
+    // Generate character sprites
+    const characters = ['bartender', 'mysterious-woman'];
+    characters.forEach(charId => {
+      const charSprite = environmentSprites.generateCharacterSprite(charId);
+      window.gameSprites[charId] = charSprite;
+    });
+  },
+  
+  // Generate default sprites
+  generateDefaultSprites() {
+    // Room backgrounds
+    const bgNames = ['barScene', 'streetScene', 'hotelLobbyScene', 'hotelHallwayScene', 'secretRoomScene'];
     
-    /**
-     * Update the game time
-     */
-    updateGameTime() {
-        // ...existing updateGameTime code...
-    }
-    
-    /**
-     * Show a message to the player
-     * @param {string} message - The message to show
-     */
-    showMessage(message) {
-        if (this.domElements.messageText && this.domElements.messageBox) {
-            this.domElements.messageText.textContent = message;
-            this.domElements.messageBox.style.display = 'block';
-        }
-    }
-    
-    /**
-     * Close the message box
-     */
-    closeMessage() {
-        if (this.domElements.messageBox) {
-            this.domElements.messageBox.style.display = 'none';
-        }
-    }
-    
-    // Add other game engine methods...
-}
+    bgNames.forEach(name => {
+      const roomId = name.replace('Scene', '');
+      const sprite = environmentSprites.generateRoomBackground(roomId);
+      window.gameSprites[name] = sprite;
+      window.gameImages[name] = sprite.toDataURL(4);
+    });
+  }
+};
 
-// Create singleton instance
-const gameEngine = new GameEngine();
-
-// Export as default
-export default gameEngine;
-
-// Also make available globally
-window.gameEngine = gameEngine;
+// Ensure compatibility with the existing code structure
+window.gameEngine = GameEngine;
+export default GameEngine;

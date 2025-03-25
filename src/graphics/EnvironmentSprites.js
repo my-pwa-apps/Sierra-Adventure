@@ -1,9 +1,7 @@
 import { PixelSprite } from './PixelSprite.js';
 import { COLORS, ColorUtils } from '../common/color-palette.js';
 
-/**
- * Helper functions for sprite generation
- */
+// Function to create simple tile sprites
 function createSimpleTile(mainColor, accentColor, size = 4) {
   const tile = [];
   
@@ -19,136 +17,147 @@ function createSimpleTile(mainColor, accentColor, size = 4) {
   return tile;
 }
 
-/**
- * VEGETATION SPRITES
- */
-// Tree sprite
-export const tree = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.TRANSPARENT],
-  [COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN],
-  [COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-]);
-
-// Pine tree sprite
-export const pineTree = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.GREEN, COLORS.DARK_GREEN, COLORS.GREEN, COLORS.TRANSPARENT],
-  [COLORS.DARK_GREEN, COLORS.GREEN, COLORS.DARK_GREEN, COLORS.GREEN, COLORS.DARK_GREEN],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.WOOD, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-]);
-
-// Bush sprite
-export const bush = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.GREEN, COLORS.GREEN, COLORS.TRANSPARENT],
-  [COLORS.GREEN, COLORS.DARK_GREEN, COLORS.DARK_GREEN, COLORS.GREEN],
-  [COLORS.GREEN, COLORS.GREEN, COLORS.GREEN, COLORS.GREEN],
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-]);
-
-/**
- * TERRAIN SPRITES
- */
-// Rock sprite
-export const rock = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.GREY, COLORS.GREY, COLORS.TRANSPARENT],
-  [COLORS.GREY, COLORS.GREY, COLORS.GREY, COLORS.GREY],
-  [COLORS.GREY, COLORS.DARK_GREY, COLORS.GREY, COLORS.GREY],
-  [COLORS.TRANSPARENT, COLORS.GREY, COLORS.GREY, COLORS.TRANSPARENT],
-]);
-
-// Grass tile sprite - using helper function for more natural variation
-export const grass = new PixelSprite(createSimpleTile(COLORS.GREEN, COLORS.DARK_GREEN));
-
-// Water tile sprite - using helper function
-export const water = new PixelSprite(createSimpleTile(COLORS.BLUE, COLORS.LIGHT_BLUE));
-
-// Sand tile
-export const sand = new PixelSprite(createSimpleTile(COLORS.YELLOW, COLORS.LIGHT_BROWN));
-
-/**
- * STRUCTURE SPRITES
- */
-// House sprite
-export const house = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT, COLORS.TRANSPARENT],
-  [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
-  [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
-  [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-  [COLORS.WOOD, COLORS.WOOD, COLORS.YELLOW, COLORS.WOOD, COLORS.YELLOW, COLORS.WOOD, COLORS.WOOD],
-  [COLORS.WOOD, COLORS.WOOD, COLORS.YELLOW, COLORS.WOOD, COLORS.YELLOW, COLORS.WOOD, COLORS.WOOD],
-  [COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD, COLORS.WOOD],
-]);
-
-// Small cabin
-export const cabin = new PixelSprite([
-  [COLORS.TRANSPARENT, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.TRANSPARENT],
-  [COLORS.DARK_BROWN, COLORS.WOOD, COLORS.WOOD, COLORS.DARK_BROWN],
-  [COLORS.DARK_BROWN, COLORS.YELLOW, COLORS.WOOD, COLORS.DARK_BROWN],
-  [COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN, COLORS.DARK_BROWN],
-]);
-
-/**
- * Helper function to adjust a hex color's brightness
- */
-function adjustColor(color, amount) {
-  if (color === COLORS.TRANSPARENT) return color;
-  return ColorUtils.adjustBrightness(color, amount);
-}
-
-/**
- * Get a random tile with slight variations for natural environment areas
- */
-export function getRandomTile(baseSprite, variationPercent = 10) {
-  // Clone the sprite's internal grid and add small variations
-  const grid = baseSprite.grid;
-  const width = grid[0]?.length || 0;
-  const height = grid.length;
-  
-  const newGrid = [];
-  
-  for (let y = 0; y < height; y++) {
-    newGrid[y] = [...grid[y]];
-    for (let x = 0; x < width; x++) {
-      // Apply random variations
-      if (Math.random() * 100 < variationPercent) {
-        // Skip transparent pixels
-        if (grid[y][x] !== COLORS.TRANSPARENT) {
-          // Slightly darken or lighten
-          const darken = Math.random() > 0.5;
-          if (darken) {
-            // Darken by adding more black
-            newGrid[y][x] = adjustColor(grid[y][x], -15);
-          } else {
-            // Lighten by adding more white
-            newGrid[y][x] = adjustColor(grid[y][x], 15);
-          }
-        }
+// Basic sprites for the environment
+export const environmentSprites = {
+  // Generate simple background
+  createBackground(color = COLORS.DARK_BLUE) {
+    const grid = [];
+    for (let y = 0; y < 30; y++) {
+      grid[y] = [];
+      for (let x = 0; x < 40; x++) {
+        // Add slight variations
+        const variation = Math.floor(Math.random() * 20) - 10;
+        grid[y][x] = ColorUtils.adjustBrightness(color, variation);
       }
     }
-  }
+    return new PixelSprite(grid);
+  },
   
-  return new PixelSprite(newGrid);
-}
-
-// Export all sprites as a collection
-export const environmentSprites = {
-  tree,
-  pineTree,
-  bush,
-  rock,
-  grass,
-  water,
-  sand,
-  house,
-  cabin,
-  getRandomTile
+  // Generate room-specific backgrounds
+  generateRoomBackground(roomId) {
+    switch (roomId) {
+      case 'bar':
+        return this.createBarBackground();
+      case 'street':
+        return this.createStreetBackground();
+      case 'hotel-lobby':
+        return this.createHotelLobbyBackground();
+      case 'hotel-hallway':
+        return this.createHotelHallwayBackground();
+      case 'secret-room':
+        return this.createSecretRoomBackground();
+      default:
+        return this.createBackground();
+    }
+  },
+  
+  // Generate character sprites
+  generateCharacterSprite(type) {
+    switch (type) {
+      case 'bartender':
+        return this.createBartenderSprite();
+      case 'player':
+      case 'playerCharacter':
+        return this.createPlayerSprite();
+      case 'mysterious-woman':
+        return this.createWomanSprite();
+      default:
+        return this.createDefaultCharacterSprite();
+    }
+  },
+  
+  // Specific background creators
+  createBarBackground() {
+    // Bar background implementation
+    const background = this.createBackground(COLORS.DARK_BROWN);
+    return background;
+  },
+  
+  createStreetBackground() {
+    // Street background implementation
+    const background = this.createBackground(COLORS.DARK_GREY);
+    return background;
+  },
+  
+  createHotelLobbyBackground() {
+    // Hotel lobby background implementation
+    const background = this.createBackground(COLORS.DARK_RED);
+    return background;
+  },
+  
+  createHotelHallwayBackground() {
+    // Hotel hallway background implementation
+    const background = this.createBackground(COLORS.DARK_PURPLE);
+    return background;
+  },
+  
+  createSecretRoomBackground() {
+    // Secret room background implementation
+    const background = this.createBackground(COLORS.DARK_GREEN);
+    return background;
+  },
+  
+  // Character sprite creators
+  createPlayerSprite() {
+    return new PixelSprite([
+      [COLORS.TRANSPARENT, COLORS.BROWN, COLORS.BROWN, COLORS.TRANSPARENT],
+      [COLORS.BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.BROWN],
+      [COLORS.TRANSPARENT, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.BLUE, COLORS.BLUE, COLORS.TRANSPARENT],
+      [COLORS.BLUE, COLORS.BLUE, COLORS.BLUE, COLORS.BLUE],
+      [COLORS.BLUE, COLORS.BLUE, COLORS.BLUE, COLORS.BLUE],
+      [COLORS.TRANSPARENT, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.TRANSPARENT]
+    ]);
+  },
+  
+  createBartenderSprite() {
+    // Bartender sprite implementation
+    return new PixelSprite([
+      [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+      [COLORS.DARK_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.DARK_BROWN],
+      [COLORS.DARK_BROWN, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.DARK_BROWN],
+      [COLORS.TRANSPARENT, COLORS.GREY, COLORS.GREY, COLORS.TRANSPARENT],
+      [COLORS.GREY, COLORS.GREY, COLORS.GREY, COLORS.GREY],
+      [COLORS.GREY, COLORS.GREY, COLORS.GREY, COLORS.GREY],
+      [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.BLACK, COLORS.BLACK, COLORS.TRANSPARENT]
+    ]);
+  },
+  
+  createWomanSprite() {
+    // Mysterious woman sprite implementation
+    return new PixelSprite([
+      [COLORS.TRANSPARENT, COLORS.YELLOW, COLORS.YELLOW, COLORS.TRANSPARENT],
+      [COLORS.YELLOW, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.YELLOW],
+      [COLORS.TRANSPARENT, COLORS.LIGHT_BROWN, COLORS.LIGHT_BROWN, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
+      [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+      [COLORS.RED, COLORS.RED, COLORS.RED, COLORS.RED],
+      [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.RED, COLORS.RED, COLORS.TRANSPARENT]
+    ]);
+  },
+  
+  createDefaultCharacterSprite() {
+    // Generic character sprite
+    return new PixelSprite([
+      [COLORS.TRANSPARENT, COLORS.GREY, COLORS.GREY, COLORS.TRANSPARENT],
+      [COLORS.GREY, COLORS.LIGHT_GREY, COLORS.LIGHT_GREY, COLORS.GREY],
+      [COLORS.TRANSPARENT, COLORS.LIGHT_GREY, COLORS.LIGHT_GREY, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.GREY, COLORS.GREY, COLORS.TRANSPARENT],
+      [COLORS.GREY, COLORS.GREY, COLORS.GREY, COLORS.GREY],
+      [COLORS.GREY, COLORS.GREY, COLORS.GREY, COLORS.GREY],
+      [COLORS.TRANSPARENT, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.TRANSPARENT],
+      [COLORS.TRANSPARENT, COLORS.DARK_GREY, COLORS.DARK_GREY, COLORS.TRANSPARENT]
+    ]);
+  }
 };
 
-// Make available globally for non-module code
+// Add missing color definitions for backward compatibility
+if (!COLORS.DARK_RED) COLORS.DARK_RED = '#8B0000';
+if (!COLORS.DARK_PURPLE) COLORS.DARK_PURPLE = '#301934';
+
+// Make available globally for backward compatibility
+window.gameSprites = window.gameSprites || {};
 window.environmentSprites = environmentSprites;
