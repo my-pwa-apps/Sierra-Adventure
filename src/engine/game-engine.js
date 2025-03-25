@@ -9,39 +9,70 @@ const GameEngine = {
         window.gameSprites = window.gameSprites || {};
         window.gameImages = window.gameImages || {};
         
-        // Generate scenes first
-        this.generateScenes();
-        
-        // Create SierraAdventure instance with complete scene data
+        // Create the SierraAdventure object first
         window.SierraAdventure = {
-            // ...existing code...
-            
-            updateRoom() {
-                const room = this.rooms[this.gameState.currentRoom];
-                console.log('Updating room:', this.gameState.currentRoom);
-                
-                const canvas = document.getElementById('room-canvas');
-                if (!canvas) return;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw background
-                const bgKey = `${this.gameState.currentRoom}-background.png`;
-                if (window.gameImages[bgKey]) {
-                    const img = new Image();
-                    img.onload = () => {
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        this.drawRoomElements(ctx, room);
-                    };
-                    img.src = window.gameImages[bgKey];
+            gameState: {
+                currentRoom: 'bar',
+                inventory: [],
+                score: 0,
+                gameTime: 0,
+                playerAction: 'walk',
+                selectedItem: null,
+                playerName: 'Larry',
+                flags: {
+                    talkedToBartender: false,
+                    gotHotelKey: false,
+                    solvedPuzzle: false
                 }
             },
-            
-            generatePlayerSprite() {
-                const playerDiv = document.getElementById('player');
-                if (!playerDiv) return;
+
+            // Required methods
+            init() {
+                console.log('Initializing SierraAdventure');
+                this.cacheDOMElements();
+                this.setupEventListeners();
+                this.generatePlayerSprite();
+                this.updateRoom();
+                this.timers = {
+                    gameTime: setInterval(() => this.updateGameTime(), 1000)
+                };
+                this.showMessage(`Welcome to "Hotel of Desire: A Sierra-style Adventure"! You are ${this.gameState.playerName}, a lovable loser on a quest for love and excitement in the big city. Type 'help' for commands.`);
+            },
+
+            cacheDOMElements() {
+                this.domElements = {
+                    scene: document.querySelector('.scene'),
+                    player: document.getElementById('player'),
+                    roomCanvas: document.getElementById('room-canvas'),
+                    inventory: document.getElementById('inventory'),
+                    messageBox: document.getElementById('message-box'),
+                    messageText: document.getElementById('message-text'),
+                    messageOk: document.getElementById('message-ok'),
+                    scoreElement: document.querySelector('.score'),
+                    timeElement: document.getElementById('game-time'),
+                    commandInput: document.getElementById('command-input'),
+                    actionButtons: {
+                        look: document.getElementById('look-btn'),
+                        talk: document.getElementById('talk-btn'),
+                        walk: document.getElementById('walk-btn'),
+                        use: document.getElementById('use-btn'),
+                        inventory: document.getElementById('inventory-btn')
+                    }
+                };
+            },
+
+            setupEventListeners() {
+                this.domElements.messageOk.addEventListener('click', () => this.closeMessage());
+                this.domElements.scene.addEventListener('click', (e) => this.handleSceneClick(e));
+                document.addEventListener('keydown', (e) => this.handleKeyboardMovement(e));
                 
+                // Action buttons
+                Object.entries(this.domElements.actionButtons).forEach(([action, button]) => {
+                    button.addEventListener('click', () => this.setPlayerAction(action));
+                });
+            },
+
+            generatePlayerSprite() {
                 const canvas = document.createElement('canvas');
                 canvas.width = 32;
                 canvas.height = 64;
@@ -49,19 +80,83 @@ const GameEngine = {
                 canvas.style.height = '100%';
                 
                 const ctx = canvas.getContext('2d');
-                const sprite = window.gameSprites.playerCharacter;
-                if (sprite) {
-                    sprite.render(ctx, 0, 0, 8);
+                if (window.gameSprites.playerCharacter) {
+                    window.gameSprites.playerCharacter.render(ctx, 0, 0, 8);
                 }
                 
-                playerDiv.appendChild(canvas);
+                this.domElements.player.appendChild(canvas);
+            },
+
+            updateRoom() {
+                const room = this.rooms[this.gameState.currentRoom];
+                const ctx = this.domElements.roomCanvas.getContext('2d');
+                ctx.clearRect(0, 0, 640, 400);
+                
+                const bgKey = `${this.gameState.currentRoom}-background.png`;
+                if (window.gameImages[bgKey]) {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, 640, 400);
+                        this.drawRoomElements(ctx, room);
+                    };
+                    img.src = window.gameImages[bgKey];
+                }
+            },
+
+            showMessage(message) {
+                this.domElements.messageText.textContent = message;
+                this.domElements.messageBox.style.display = 'block';
+            },
+
+            closeMessage() {
+                this.domElements.messageBox.style.display = 'none';
+            },
+
+            updateGameTime() {
+                this.gameState.gameTime++;
+                const hours = Math.floor(this.gameState.gameTime / 60) % 24;
+                const minutes = this.gameState.gameTime % 60;
+                this.domElements.timeElement.textContent = 
+                    `Time: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            },
+
+            setPlayerAction(action) {
+                this.gameState.playerAction = action;
+                Object.values(this.domElements.actionButtons).forEach(btn => {
+                    btn.style.backgroundColor = '#555';
+                });
+                this.domElements.actionButtons[action].style.backgroundColor = '#a00';
+            },
+
+            handleSceneClick(e) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (this.gameState.playerAction === 'walk') {
+                    this.movePlayer(x, y);
+                }
+            },
+
+            movePlayer(x, y) {
+                const player = this.domElements.player;
+                x = Math.max(0, Math.min(608, x));
+                player.style.left = `${x}px`;
+            },
+
+            rooms: {
+                // ... room data from original SierraAdventure ...
             }
         };
         
-        // Initialize the game
+        // Generate scenes and sprites
+        this.generateScenes();
+        this.generateSprites();
+        
+        // Initialize SierraAdventure
         window.SierraAdventure.init();
     },
-
+    
     generateScenes() {
         // Bar scene
         this.generateScene('bar', {
@@ -150,5 +245,4 @@ const GameEngine = {
     }
 };
 
-// Export as module
 export default GameEngine;
